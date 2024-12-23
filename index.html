@@ -3,39 +3,87 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Solana Wallet Integration</title>
-  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.76.0/dist/web3.umd.min.js"></script>
+  <title>Solana Wallet Connect</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background-color: #f3f3f3;
+    }
+    .container {
+      margin-top: 100px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      color: white;
+      background-color: #4CAF50;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:disabled {
+      background-color: #ccc;
+    }
+    .info {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #333;
+    }
+  </style>
 </head>
 <body>
-  <h1>Welcome to Solana App</h1>
-  <button id="connect-wallet">Connect Wallet</button>
-  <p id="wallet-address"></p>
-  <p id="sol-balance"></p>
+  <div class="container">
+    <h1>Welcome to Solana Wallet Connect</h1>
+    <p>Connect your Phantom Wallet to get started.</p>
+    <button id="connect-wallet">Connect Wallet</button>
+    <div class="info" id="user-info"></div>
+  </div>
 
   <script>
-    const { Connection, PublicKey, LAMPORTS_PER_SOL } = solanaWeb3;
-    const MAINNET_RPC_URL = "https://api.mainnet-beta.solana.com";
-    const connection = new Connection(MAINNET_RPC_URL);
+    const connectWalletButton = document.getElementById('connect-wallet');
+    const userInfoDiv = document.getElementById('user-info');
 
-    document.getElementById("connect-wallet").addEventListener("click", async () => {
-      if (!window.solana || !window.solana.isPhantom) {
-        alert("Please install the Phantom wallet extension.");
-        return;
+    // Check if Phantom wallet is available
+    const checkPhantomAvailability = () => {
+      if (window.solana && window.solana.isPhantom) {
+        console.log("Phantom Wallet is available");
+        return true;
+      } else {
+        console.error("Phantom Wallet is not available");
+        userInfoDiv.innerHTML = "Phantom Wallet not detected. Please install it!";
+        connectWalletButton.disabled = true;
+        return false;
       }
+    };
 
+    // Connect to Phantom Wallet
+    const connectWallet = async () => {
       try {
-        const wallet = await window.solana.connect();
-        const publicKey = wallet.publicKey.toString();
-        document.getElementById("wallet-address").innerText = `Wallet: ${publicKey}`;
-
-        const balance = await connection.getBalance(new PublicKey(publicKey));
-        const solBalance = balance / LAMPORTS_PER_SOL;
-        document.getElementById("sol-balance").innerText = `Balance: ${solBalance.toFixed(4)} SOL`;
+        const response = await window.solana.connect();
+        console.log("Connected to wallet:", response.publicKey.toString());
+        userInfoDiv.innerHTML = `
+          <p>Connected to wallet: <strong>${response.publicKey.toString()}</strong></p>
+        `;
+        connectWalletButton.disabled = true;
+        connectWalletButton.innerText = "Connected";
       } catch (error) {
-        console.error("Error:", error);
-        alert("Failed to connect or fetch balance.");
+        console.error("Failed to connect to wallet:", error);
+        userInfoDiv.innerHTML = "<p>Failed to connect to wallet. Please try again.</p>";
       }
-    });
+    };
+
+    // Initialize the app
+    const init = () => {
+      if (checkPhantomAvailability()) {
+        connectWalletButton.addEventListener('click', connectWallet);
+      }
+    };
+
+    // Run initialization when the page loads
+    window.onload = init;
   </script>
 </body>
 </html>
