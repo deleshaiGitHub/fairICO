@@ -3,113 +3,68 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Solana Wallet Connect</title>
-  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.10.0/lib/index.iife.min.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-      background-color: #f3f3f3;
-    }
-    .container {
-      margin-top: 100px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      color: white;
-      background-color: #4CAF50;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-    button:disabled {
-      background-color: #ccc;
-    }
-    .info {
-      margin-top: 20px;
-      font-size: 18px;
-      color: #333;
-    }
-  </style>
+  <title>Connect Solana Wallet</title>
+  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.76.0/lib/index.umd.min.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>Welcome to Solana Wallet Connect</h1>
-    <p>Connect your Phantom Wallet to check your balance and make swaps.</p>
-    <button id="connect-wallet">Connect Wallet</button>
-    <div class="info" id="user-info"></div>
-  </div>
+  <h1>Welcome to Solana App</h1>
+  <button id="connect-button">Connect Wallet</button>
+  <div id="user-info"></div>
 
   <script>
-    const connectWalletButton = document.getElementById('connect-wallet');
+    const { Connection, PublicKey, clusterApiUrl } = solanaWeb3;
+
+    // Replace with your dedicated RPC endpoint
+    const MAINNET_RPC_URL = 'https://your-quicknode-or-custom-rpc-url.com';
+
+    const connection = new Connection(MAINNET_RPC_URL);
+
     const userInfoDiv = document.getElementById('user-info');
-    let connection;
+    const connectButton = document.getElementById('connect-button');
 
-    const MAINNET_URL = solanaWeb3.clusterApiUrl('mainnet-beta'); // Mainnet URL
-
-    // Check if Phantom wallet is available
-    const checkPhantomAvailability = () => {
-      if (window.solana && window.solana.isPhantom) {
-        console.log("Phantom Wallet is available");
-        return true;
-      } else {
-        console.error("Phantom Wallet is not available");
-        userInfoDiv.innerHTML = "Phantom Wallet not detected. Please install it!";
-        connectWalletButton.disabled = true;
-        return false;
-      }
-    };
-
-    // Connect to Phantom Wallet
-    const connectWallet = async () => {
-      try {
-        const response = await window.solana.connect();
-        console.log("Connected to wallet:", response.publicKey.toString());
-        const publicKey = response.publicKey.toString();
-
-        connectWalletButton.disabled = true;
-        connectWalletButton.innerText = "Connected";
-
-        // Display public key
-        userInfoDiv.innerHTML = `<p>Connected to wallet: <strong>${publicKey}</strong></p>`;
-
-        // Initialize Solana connection
-        connection = new solanaWeb3.Connection(MAINNET_URL);
-
-        // Fetch and display SOL balance
-        await fetchBalance(publicKey);
-      } catch (error) {
-        console.error("Failed to connect to wallet:", error);
-        userInfoDiv.innerHTML = "<p>Failed to connect to wallet. Please try again.</p>";
-      }
-    };
-
-    // Fetch and display user's SOL balance
     const fetchBalance = async (publicKey) => {
       try {
-        const balance = await connection.getBalance(new solanaWeb3.PublicKey(publicKey));
+        // Fetch the SOL balance
+        const balance = await connection.getBalance(new PublicKey(publicKey));
         const solBalance = balance / solanaWeb3.LAMPORTS_PER_SOL; // Convert lamports to SOL
         console.log("SOL Balance:", solBalance);
 
-        userInfoDiv.innerHTML += `<p>SOL Balance: <strong>${solBalance.toFixed(4)} SOL</strong></p>`;
+        if (solBalance === 0) {
+          userInfoDiv.innerHTML += `<p>Your SOL balance is zero. Please fund your wallet.</p>`;
+        } else {
+          userInfoDiv.innerHTML += `<p>SOL Balance: <strong>${solBalance.toFixed(4)} SOL</strong></p>`;
+        }
       } catch (error) {
         console.error("Failed to fetch balance:", error);
-        userInfoDiv.innerHTML += "<p>Failed to fetch balance. Please try again.</p>";
+        if (error.message.includes("403")) {
+          userInfoDiv.innerHTML += `<p>Access forbidden: Please check your RPC URL or try again later.</p>`;
+        } else {
+          userInfoDiv.innerHTML += "<p>Failed to fetch balance. Please try again.</p>";
+        }
       }
     };
 
-    // Initialize the app
-    const init = () => {
-      if (checkPhantomAvailability()) {
-        connectWalletButton.addEventListener('click', connectWallet);
+    const connectWallet = async () => {
+      if (!window.solana || !window.solana.isPhantom) {
+        alert("Please install the Phantom wallet extension.");
+        return;
+      }
+
+      try {
+        const response = await window.solana.connect();
+        console.log("Connected wallet:", response.publicKey.toString());
+
+        userInfoDiv.innerHTML = `<p>Wallet Address: <strong>${response.publicKey.toString()}</strong></p>`;
+
+        // Fetch and display SOL balance
+        await fetchBalance(response.publicKey.toString());
+      } catch (error) {
+        console.error("Failed to connect wallet:", error);
+        userInfoDiv.innerHTML = "<p>Failed to connect wallet. Please try again.</p>";
       }
     };
 
-    // Run initialization when the page loads
-    window.onload = init;
+    connectButton.addEventListener('click', connectWallet);
   </script>
 </body>
 </html>
