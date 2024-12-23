@@ -33,6 +33,8 @@
       color: #333;
     }
   </style>
+  <!-- Include Solana Web3.js Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.76.0/dist/web3.umd.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -59,18 +61,27 @@
       }
     };
 
-    // Connect to Phantom Wallet
+    // Connect to Phantom Wallet and fetch SOL balance
     const connectWallet = async () => {
       try {
         const response = await window.solana.connect();
-        console.log("Connected to wallet:", response.publicKey.toString());
+        const publicKey = response.publicKey.toString();
+        console.log("Connected to wallet:", publicKey);
+
+        // Fetch balance
+        const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl("mainnet-beta"));
+        const balance = await connection.getBalance(new solanaWeb3.PublicKey(publicKey));
+        const solBalance = balance / solanaWeb3.LAMPORTS_PER_SOL;
+
+        // Display wallet info
         userInfoDiv.innerHTML = `
-          <p>Connected to wallet: <strong>${response.publicKey.toString()}</strong></p>
+          <p>Connected to wallet: <strong>${publicKey}</strong></p>
+          <p>SOL Balance: <strong>${solBalance.toFixed(4)} SOL</strong></p>
         `;
         connectWalletButton.disabled = true;
         connectWalletButton.innerText = "Connected";
       } catch (error) {
-        console.error("Failed to connect to wallet:", error);
+        console.error("Failed to connect to wallet or fetch balance:", error);
         userInfoDiv.innerHTML = "<p>Failed to connect to wallet. Please try again.</p>";
       }
     };
