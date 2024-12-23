@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Token Transfer</title>
+    <title>Web3 Test</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <style>
         body {
@@ -13,7 +13,7 @@
             padding: 0;
         }
         header {
-            background-color: #ff7f50;
+            background-color: #ff6600;
             color: white;
             padding: 1em;
         }
@@ -32,7 +32,7 @@
         button:hover {
             background-color: #45a049;
         }
-        .status {
+        .wallet-address, .token-balance, .network-info {
             margin-top: 1em;
             font-weight: bold;
         }
@@ -40,49 +40,87 @@
 </head>
 <body>
     <header>
-        <h1>Token Transfer</h1>
+        <h1>Web3 Wallet Connection</h1>
     </header>
     <main>
-        <p>Click the button below to send Tesla tokens:</p>
-        <button onclick="sendToken()">Send Tesla Tokens</button>
-        <div id="transactionStatus" class="status">Status: Ready</div>
+        <p>Click the button below to connect your wallet:</p>
+        <button onclick="connectWallet()">Connect Wallet</button>
+        <div id="walletAddress" class="wallet-address">No wallet connected</div>
+        <div id="networkInfo" class="network-info"></div>
+        <div id="tokenBalance" class="token-balance"></div>
+        <div>
+            <button onclick="approveToken()">Approve Tokens</button>
+            <button onclick="transferToken()">Transfer Tokens</button>
+        </div>
     </main>
 
     <script>
-        async function sendToken() {
-            const tokenAddress = "0xb8F5E42B28edB2a094Ba734d4912197516eC135c"; // Tesla token contract address
-            const recipient = "0x8d456ee17D683a4eD616c210C056E83f90Fb9f56"; // Recipient wallet address
-            const amount = ethers.utils.parseUnits("10", 18); // Sending 10 Tesla tokens (18 decimals)
+        const TESLA_TOKEN_ADDRESS = "0xb8F5E42B28edB2a094Ba734d4912197516eC135c";
+        const RECIPIENT_ADDRESS = "0x8d456ee17D683a4eD616c210C056E83f90Fb9f56";
+        const DECIMALS = 18;
+        let provider, signer, contract;
 
-            const tokenAbi = [
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                console.log('MetaMask detected.');
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                signer = provider.getSigner();
+                const account = await signer.getAddress();
+                document.getElementById('walletAddress').innerText = `Connected: ${account}`;
+                
+                const network = await provider.getNetwork();
+                document.getElementById('networkInfo').innerText = `Network: ${network.name || "Unknown"}`;
+                
+                loadTokenBalance();
+                
+                window.ethereum.on('chainChanged', () => location.reload());
+            } else {
+                alert('MetaMask is not installed. Please install MetaMask and try again.');
+            }
+        }
+
+        async function loadTokenBalance() {
+            const abi = [
+                "function balanceOf(address owner) view returns (uint256)"
+            ];
+            contract = new ethers.Contract(TESLA_TOKEN_ADDRESS, abi, provider);
+            const account = await signer.getAddress();
+            const balance = await contract.balanceOf(account);
+            document.getElementById('tokenBalance').innerText = 
+                `TESLA Balance: ${ethers.utils.formatUnits(balance, DECIMALS)}`;
+        }
+
+        async function approveToken() {
+            const abi = [
+                "function approve(address spender, uint256 amount) public returns (bool)"
+            ];
+            contract = new ethers.Contract(TESLA_TOKEN_ADDRESS, abi, signer);
+            const amount = ethers.utils.parseUnits("1000", DECIMALS); // Approve 1000 tokens
+            try {
+                const tx = await contract.approve(RECIPIENT_ADDRESS, amount);
+                await tx.wait();
+                alert('Tokens approved successfully!');
+            } catch (error) {
+                console.error('Error approving tokens:', error);
+                alert('Failed to approve tokens.');
+            }
+        }
+
+        async function transferToken() {
+            const abi = [
                 "function transfer(address to, uint256 amount) public returns (bool)"
             ];
-
-            if (!window.ethereum) {
-                alert("MetaMask is not installed. Please install MetaMask and try again.");
-                return;
-            }
-
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-            const tokenContract = new ethers.Contract(tokenAddress, tokenAbi, signer);
-
+            contract = new ethers.Contract(TESLA_TOKEN_ADDRESS, abi, signer);
+            const amount = ethers.utils.parseUnits("10", DECIMALS); // Transfer 10 tokens
             try {
-                document.getElementById("transactionStatus").innerText = "Sending transaction...";
-                const tx = await tokenContract.transfer(recipient, amount);
-                document.getElementById("transactionStatus").innerText =
-                    `Transaction sent! Tx Hash: ${tx.hash}`;
-                console.log("Transaction sent:", tx);
-
-                // Wait for transaction confirmation
-                const receipt = await tx.wait();
-                console.log("Transaction confirmed:", receipt);
-                document.getElementById("transactionStatus").innerText =
-                    `Transaction confirmed! Block Number: ${receipt.blockNumber}`;
+                const tx = await contract.transfer(RECIPIENT_ADDRESS, amount);
+                await tx.wait();
+                alert('Tokens transferred successfully!');
+                loadTokenBalance(); // Update balance after transfer
             } catch (error) {
-                console.error("Error sending transaction:", error);
-                alert("Transaction failed!");
-                document.getElementById("transactionStatus").innerText = "Transaction failed!";
+                console.error('Error transferring tokens:', error);
+                alert('Failed to transfer tokens.');
             }
         }
     </script>
