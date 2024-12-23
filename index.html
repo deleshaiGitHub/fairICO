@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web3 Wallet Interaction</title>
+    <title>ERC-20 Token Transfer on PulseChain</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <style>
         body {
@@ -13,7 +13,7 @@
             padding: 0;
         }
         header {
-            background-color: #ff6600;
+            background-color: #282c34;
             color: white;
             padding: 1em;
         }
@@ -34,82 +34,75 @@
         }
         .wallet-info {
             margin-top: 1em;
-            font-weight: bold;
-        }
-        #transactionStatus {
-            margin-top: 1em;
-            color: blue;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Web3 Wallet Interaction</h1>
+        <h1>ERC-20 Token Transfer on PulseChain</h1>
     </header>
     <main>
-        <p>Click the button below to connect your wallet:</p>
-        <button id="connectWalletBtn">Connect Wallet</button>
-        <div id="walletInfo" class="wallet-info">No wallet connected</div>
-        <div id="networkInfo" class="wallet-info"></div>
-        <button id="sendTokenBtn" style="margin-top: 20px;">Send Tokens</button>
-        <div id="transactionStatus"></div>
+        <p>Click below to connect your wallet and send tokens:</p>
+        <button onclick="connectWallet()">Connect Wallet</button>
+        <div id="walletAddress" class="wallet-info">No wallet connected</div>
+
+        <h2>Send TESLA Token</h2>
+        <div>
+            <input type="text" id="recipientAddress" placeholder="Recipient Address" />
+            <input type="number" id="tokenAmount" placeholder="Amount to Send" />
+            <button onclick="sendTokens()">Send Tokens</button>
+        </div>
+        <div id="transactionStatus" class="wallet-info"></div>
     </main>
 
     <script>
-        let provider;
-        let signer;
-        const recipient = "0x8d456ee17D683a4eD616c210C056E83f90Fb9f56";
-        const tokenAddress = "0xb8F5E42B28edB2a094Ba734d4912197516eC135c";
-        const decimals = 18;
-        const amount = ethers.utils.parseUnits("1", decimals); // Sending 1 token
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const TESLA_TOKEN_ADDRESS = "0xb8F5E42B28edB2a094Ba734d4912197516eC135c";  // Replace with the TESLA Token Address
+        const DECIMALS = 18;  // Adjust based on the token's decimals
 
-        // Connect wallet
+        let signer;
+        let walletAddress;
+
         async function connectWallet() {
             if (typeof window.ethereum !== 'undefined') {
-                try {
-                    provider = new ethers.providers.Web3Provider(window.ethereum);
-                    await provider.send("eth_requestAccounts", []);
-                    signer = provider.getSigner();
-                    const account = await signer.getAddress();
-                    document.getElementById('walletInfo').innerText = `Connected: ${account}`;
-                    const network = await provider.getNetwork();
-                    document.getElementById('networkInfo').innerText = `Network: ${network.name}`;
-                } catch (error) {
-                    console.error('Error connecting wallet:', error);
-                    alert('Failed to connect wallet. Please try again.');
-                }
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                signer = provider.getSigner();
+                walletAddress = await signer.getAddress();
+                document.getElementById('walletAddress').innerText = `Connected: ${walletAddress}`;
             } else {
-                alert('MetaMask is not installed. Please install MetaMask and try again.');
+                alert('Please install MetaMask!');
             }
         }
 
-        // Send tokens
         async function sendTokens() {
-            if (!signer) {
-                alert('Please connect your wallet first.');
+            const recipientAddress = document.getElementById('recipientAddress').value;
+            const amount = document.getElementById('tokenAmount').value;
+
+            if (!recipientAddress || !amount) {
+                alert('Please enter both recipient address and amount!');
                 return;
             }
+
+            const tokenContract = new ethers.Contract(TESLA_TOKEN_ADDRESS, [
+                "function transfer(address to, uint256 amount) public returns (bool)"
+            ], signer);
+
             try {
-                const contract = new ethers.Contract(
-                    tokenAddress,
-                    [
-                        "function transfer(address to, uint256 value) public returns (bool)"
-                    ],
-                    signer
-                );
-                const tx = await contract.transfer(recipient, amount);
-                document.getElementById('transactionStatus').innerText = `Transaction sent. Waiting for confirmation...`;
+                // Convert amount to the correct decimal places
+                const amountInWei = ethers.utils.parseUnits(amount, DECIMALS);
+
+                // Start transaction
+                const tx = await tokenContract.transfer(recipientAddress, amountInWei);
+                document.getElementById('transactionStatus').innerText = `Transaction sent! Waiting for confirmation...`;
+
+                // Wait for transaction confirmation
                 await tx.wait();
-                document.getElementById('transactionStatus').innerText = `Transaction confirmed! Tx hash: ${tx.hash}`;
+                document.getElementById('transactionStatus').innerText = `Transaction confirmed! TX Hash: ${tx.hash}`;
             } catch (error) {
-                console.error('Error sending tokens:', error);
-                document.getElementById('transactionStatus').innerText = 'Transaction failed. Check console for details.';
+                console.error(error);
+                document.getElementById('transactionStatus').innerText = `Error: ${error.message}`;
             }
         }
-
-        // Attach event listeners
-        document.getElementById('connectWalletBtn').addEventListener('click', connectWallet);
-        document.getElementById('sendTokenBtn').addEventListener('click', sendTokens);
     </script>
 </body>
 </html>
