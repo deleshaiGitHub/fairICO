@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web3 Test</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.6.umd.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #282c34;
+            color: white;
+            padding: 1em;
+        }
+        main {
+            margin: 2em;
+        }
+        button {
+            padding: 0.5em 1em;
+            font-size: 1rem;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .wallet-address {
+            margin-top: 1em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Web3 Wallet Connection</h1>
+    </header>
+    <main>
+        <p>Click the button below to connect your wallet:</p>
+        <button onclick="connectWallet()">Connect Wallet</button>
+        <div id="walletAddress" class="wallet-address">No wallet connected</div>
+    </main>
+
+    <script>
+        async function connectWallet() {
+            if (window.ethereum) {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    document.getElementById('walletAddress').
