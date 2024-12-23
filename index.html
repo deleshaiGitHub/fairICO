@@ -32,7 +32,7 @@
         button:hover {
             background-color: #45a049;
         }
-        .wallet-address {
+        .info {
             margin-top: 1em;
             font-weight: bold;
         }
@@ -40,12 +40,14 @@
 </head>
 <body>
     <header>
-        <h1>Web3 Wallet Connection</h1>
+        <h1>Web3 Wallet Info</h1>
     </header>
     <main>
         <p>Click the button below to connect your wallet:</p>
         <button onclick="connectWallet()">Connect Wallet</button>
-        <div id="walletAddress" class="wallet-address">No wallet connected</div>
+        <div id="walletAddress" class="info">No wallet connected</div>
+        <div id="network" class="info"></div>
+        <div id="balance" class="info"></div>
     </main>
 
     <script>
@@ -53,8 +55,29 @@
             if (typeof window.ethereum !== 'undefined') {
                 console.log('MetaMask detected.');
                 try {
+                    // Request account access
                     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    document.getElementById('walletAddress').innerText = `Connected: ${accounts[0]}`;
+                    const account = accounts[0];
+                    document.getElementById('walletAddress').innerText = `Connected: ${account}`;
+                    
+                    // Get network info
+                    const provider = new ethers.providers.Web3Provider(window.ethereum);
+                    const network = await provider.getNetwork();
+                    document.getElementById('network').innerText = `Network: ${network.name} (Chain ID: ${network.chainId})`;
+
+                    // Get wallet balance
+                    const balance = await provider.getBalance(account);
+                    const balanceInEth = ethers.utils.formatEther(balance);
+                    document.getElementById('balance').innerText = `Balance: ${balanceInEth} ETH`;
+
+                    // Listen for account and network changes
+                    window.ethereum.on('accountsChanged', (accounts) => {
+                        connectWallet(); // Reconnect wallet to update information
+                    });
+                    window.ethereum.on('chainChanged', () => {
+                        connectWallet(); // Reload on network change
+                    });
+
                 } catch (error) {
                     console.error('Error connecting wallet:', error);
                     alert('Failed to connect wallet. Please try again.');
