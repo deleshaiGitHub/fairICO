@@ -64,7 +64,11 @@
     // Connect to Phantom Wallet and fetch SOL balance
     const connectWallet = async () => {
       try {
-        const response = await window.solana.connect();
+        // Request connection to wallet
+        const provider = window.solana;
+        if (!provider) throw new Error("No wallet found!");
+
+        const response = await provider.connect();
         const publicKey = response.publicKey.toString();
         console.log("Connected to wallet:", publicKey);
 
@@ -81,8 +85,11 @@
         connectWalletButton.disabled = true;
         connectWalletButton.innerText = "Connected";
       } catch (error) {
-        console.error("Failed to connect to wallet or fetch balance:", error);
-        userInfoDiv.innerHTML = "<p>Failed to connect to wallet. Please try again.</p>";
+        console.error("Failed to connect to wallet or fetch balance:", error.message);
+        userInfoDiv.innerHTML = `
+          <p>Failed to connect to wallet. Please try again.</p>
+          <p>Error: ${error.message}</p>
+        `;
       }
     };
 
@@ -98,3 +105,4 @@
   </script>
 </body>
 </html>
+
