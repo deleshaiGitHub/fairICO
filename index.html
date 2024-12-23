@@ -48,7 +48,7 @@
     const userInfoDiv = document.getElementById('user-info');
     let connection;
 
-    const TESTNET_URL = solanaWeb3.clusterApiUrl('testnet');
+    const MAINNET_URL = solanaWeb3.clusterApiUrl('mainnet-beta'); // Mainnet URL
 
     // Check if Phantom wallet is available
     const checkPhantomAvailability = () => {
@@ -77,34 +77,13 @@
         userInfoDiv.innerHTML = `<p>Connected to wallet: <strong>${publicKey}</strong></p>`;
 
         // Initialize Solana connection
-        connection = new solanaWeb3.Connection(TESTNET_URL);
+        connection = new solanaWeb3.Connection(MAINNET_URL);
 
-        // Check network and fetch balance
-        await ensureCorrectNetwork();
+        // Fetch and display SOL balance
         await fetchBalance(publicKey);
       } catch (error) {
         console.error("Failed to connect to wallet:", error);
         userInfoDiv.innerHTML = "<p>Failed to connect to wallet. Please try again.</p>";
-      }
-    };
-
-    // Ensure the wallet is on the correct network
-    const ensureCorrectNetwork = async () => {
-      try {
-        const network = window.solana.network; // Available in Phantom for network detection
-        console.log("Current network:", network);
-
-        if (network !== "testnet") {
-          await window.solana.request({
-            method: "wallet_switchChain",
-            params: { chainId: "testnet" }
-          });
-          console.log("Switched to testnet");
-          userInfoDiv.innerHTML += `<p>Switched to Testnet</p>`;
-        }
-      } catch (error) {
-        console.error("Error ensuring correct network:", error);
-        userInfoDiv.innerHTML += `<p>Failed to switch network. Please manually switch to Testnet in Phantom.</p>`;
       }
     };
 
