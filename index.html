@@ -32,14 +32,15 @@
       font-size: 18px;
       color: #333;
     }
+    .error {
+      color: red;
+    }
   </style>
-  <!-- Include Solana Web3.js Library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/@solana/web3.js/1.76.0/web3.min.js"></script>
 </head>
 <body>
   <div class="container">
     <h1>Welcome to Solana Wallet Connect</h1>
-    <p>Connect your Phantom Wallet to get started.</p>
+    <p>Connect your Phantom Wallet to check your SOL balance.</p>
     <button id="connect-wallet">Connect Wallet</button>
     <div class="info" id="user-info"></div>
   </div>
@@ -48,48 +49,59 @@
     const connectWalletButton = document.getElementById('connect-wallet');
     const userInfoDiv = document.getElementById('user-info');
 
-    // Check if Phantom wallet is available
+    // Function to check if Phantom wallet is available
     const checkPhantomAvailability = () => {
       if (window.solana && window.solana.isPhantom) {
         console.log("Phantom Wallet is available");
         return true;
       } else {
         console.error("Phantom Wallet is not available");
-        userInfoDiv.innerHTML = "Phantom Wallet not detected. Please install it!";
+        userInfoDiv.innerHTML = "<p class='error'>Phantom Wallet not detected. Please install it!</p>";
         connectWalletButton.disabled = true;
         return false;
       }
     };
 
-    // Connect to Phantom Wallet and fetch SOL balance
+    // Function to fetch SOL balance
+    const fetchBalance = async (publicKey) => {
+      try {
+        const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('mainnet-beta'));
+        const balance = await connection.getBalance(publicKey);
+        return balance / solanaWeb3.LAMPORTS_PER_SOL; // Convert from lamports to SOL
+      } catch (error) {
+        console.error("Failed to fetch balance:", error);
+        return null;
+      }
+    };
+
+    // Connect to Phantom Wallet
     const connectWallet = async () => {
       try {
-        // Request connection to wallet
-        const provider = window.solana;
-        if (!provider) throw new Error("No wallet found!");
+        const response = await window.solana.connect();
+        console.log("Connected to wallet:", response.publicKey.toString());
 
-        const response = await provider.connect();
-        const publicKey = response.publicKey.toString();
-        console.log("Connected to wallet:", publicKey);
-
-        // Fetch balance
-        const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl("mainnet-beta"));
-        const balance = await connection.getBalance(new solanaWeb3.PublicKey(publicKey));
-        const solBalance = balance / solanaWeb3.LAMPORTS_PER_SOL;
-
-        // Display wallet info
+        // Display wallet address
         userInfoDiv.innerHTML = `
-          <p>Connected to wallet: <strong>${publicKey}</strong></p>
-          <p>SOL Balance: <strong>${solBalance.toFixed(4)} SOL</strong></p>
+          <p>Connected to wallet: <strong>${response.publicKey.toString()}</strong></p>
         `;
+
+        // Fetch and display SOL balance
+        const balance = await fetchBalance(response.publicKey);
+        if (balance !== null) {
+          userInfoDiv.innerHTML += `
+            <p>Your SOL balance: <strong>${balance.toFixed(4)} SOL</strong></p>
+          `;
+        } else {
+          userInfoDiv.innerHTML += `
+            <p class='error'>Failed to fetch SOL balance. Please try again later.</p>
+          `;
+        }
+
         connectWalletButton.disabled = true;
         connectWalletButton.innerText = "Connected";
       } catch (error) {
-        console.error("Failed to connect to wallet or fetch balance:", error.message);
-        userInfoDiv.innerHTML = `
-          <p>Failed to connect to wallet. Please try again.</p>
-          <p>Error: ${error.message}</p>
-        `;
+        console.error("Failed to connect to wallet:", error);
+        userInfoDiv.innerHTML = "<p class='error'>Failed to connect to wallet. Please try again.</p>";
       }
     };
 
@@ -103,5 +115,8 @@
     // Run initialization when the page loads
     window.onload = init;
   </script>
+
+  <!-- Include Solana Web3.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.79.1/lib/index.umd.min.js"></script>
 </body>
 </html>
