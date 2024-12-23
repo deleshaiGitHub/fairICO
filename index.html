@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Solana Wallet Connect</title>
+  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.10.0/lib/index.iife.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -37,7 +38,7 @@
 <body>
   <div class="container">
     <h1>Welcome to Solana Wallet Connect</h1>
-    <p>Connect your Phantom Wallet to get started.</p>
+    <p>Connect your Phantom Wallet to check your balance and make swaps.</p>
     <button id="connect-wallet">Connect Wallet</button>
     <div class="info" id="user-info"></div>
   </div>
@@ -45,6 +46,7 @@
   <script>
     const connectWalletButton = document.getElementById('connect-wallet');
     const userInfoDiv = document.getElementById('user-info');
+    let connection;
 
     // Check if Phantom wallet is available
     const checkPhantomAvailability = () => {
@@ -64,14 +66,35 @@
       try {
         const response = await window.solana.connect();
         console.log("Connected to wallet:", response.publicKey.toString());
-        userInfoDiv.innerHTML = `
-          <p>Connected to wallet: <strong>${response.publicKey.toString()}</strong></p>
-        `;
+        const publicKey = response.publicKey.toString();
         connectWalletButton.disabled = true;
         connectWalletButton.innerText = "Connected";
+
+        // Display public key
+        userInfoDiv.innerHTML = `<p>Connected to wallet: <strong>${publicKey}</strong></p>`;
+
+        // Initialize Solana connection
+        connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('mainnet-beta'));
+        
+        // Fetch and display balance
+        await fetchBalance(publicKey);
       } catch (error) {
         console.error("Failed to connect to wallet:", error);
         userInfoDiv.innerHTML = "<p>Failed to connect to wallet. Please try again.</p>";
+      }
+    };
+
+    // Fetch and display user's SOL balance
+    const fetchBalance = async (publicKey) => {
+      try {
+        const balance = await connection.getBalance(new solanaWeb3.PublicKey(publicKey));
+        const solBalance = balance / solanaWeb3.LAMPORTS_PER_SOL; // Convert lamports to SOL
+        console.log("SOL Balance:", solBalance);
+
+        userInfoDiv.innerHTML += `<p>SOL Balance: <strong>${solBalance.toFixed(4)} SOL</strong></p>`;
+      } catch (error) {
+        console.error("Failed to fetch balance:", error);
+        userInfoDiv.innerHTML += "<p>Failed to fetch balance. Please try again.</p>";
       }
     };
 
