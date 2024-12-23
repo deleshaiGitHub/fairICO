@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web3 Test</title>
-    <script src="https://cdn.ethers.io/lib/ethers-5.6.umd.min.js"></script>
+    <!-- Load ethers.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -55,29 +56,16 @@
             if (typeof window.ethereum !== 'undefined') {
                 console.log('MetaMask detected.');
                 try {
-                    // Request account access
                     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                     const account = accounts[0];
                     document.getElementById('walletAddress').innerText = `Connected: ${account}`;
                     
-                    // Get network info
                     const provider = new ethers.providers.Web3Provider(window.ethereum);
                     const network = await provider.getNetwork();
-                    document.getElementById('network').innerText = `Network: ${network.name} (Chain ID: ${network.chainId})`;
+                    document.getElementById('network').innerText = `Network: ${network.name} (${network.chainId})`;
 
-                    // Get wallet balance
                     const balance = await provider.getBalance(account);
-                    const balanceInEth = ethers.utils.formatEther(balance);
-                    document.getElementById('balance').innerText = `Balance: ${balanceInEth} ETH`;
-
-                    // Listen for account and network changes
-                    window.ethereum.on('accountsChanged', (accounts) => {
-                        connectWallet(); // Reconnect wallet to update information
-                    });
-                    window.ethereum.on('chainChanged', () => {
-                        connectWallet(); // Reload on network change
-                    });
-
+                    document.getElementById('balance').innerText = `Balance: ${ethers.utils.formatEther(balance)} ETH`;
                 } catch (error) {
                     console.error('Error connecting wallet:', error);
                     alert('Failed to connect wallet. Please try again.');
