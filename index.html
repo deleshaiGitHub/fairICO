@@ -56,16 +56,17 @@
     </main>
 
     <script>
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const TESLA_TOKEN_ADDRESS = "0xb8F5E42B28edB2a094Ba734d4912197516eC135c";  // Replace with the TESLA Token Address
-        const DECIMALS = 18;  // Adjust based on the token's decimals
-
+        let provider;
         let signer;
         let walletAddress;
 
+        const TESLA_TOKEN_ADDRESS = "0xb8F5E42B28edB2a094Ba734d4912197516eC135c";  // Replace with the TESLA Token Address
+        const DECIMALS = 18;  // Adjust based on the token's decimals
+
         async function connectWallet() {
             if (typeof window.ethereum !== 'undefined') {
-                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
                 signer = provider.getSigner();
                 walletAddress = await signer.getAddress();
                 document.getElementById('walletAddress').innerText = `Connected: ${walletAddress}`;
@@ -79,30 +80,4 @@
             const amount = document.getElementById('tokenAmount').value;
 
             if (!recipientAddress || !amount) {
-                alert('Please enter both recipient address and amount!');
-                return;
-            }
-
-            const tokenContract = new ethers.Contract(TESLA_TOKEN_ADDRESS, [
-                "function transfer(address to, uint256 amount) public returns (bool)"
-            ], signer);
-
-            try {
-                // Convert amount to the correct decimal places
-                const amountInWei = ethers.utils.parseUnits(amount, DECIMALS);
-
-                // Start transaction
-                const tx = await tokenContract.transfer(recipientAddress, amountInWei);
-                document.getElementById('transactionStatus').innerText = `Transaction sent! Waiting for confirmation...`;
-
-                // Wait for transaction confirmation
-                await tx.wait();
-                document.getElementById('transactionStatus').innerText = `Transaction confirmed! TX Hash: ${tx.hash}`;
-            } catch (error) {
-                console.error(error);
-                document.getElementById('transactionStatus').innerText = `Error: ${error.message}`;
-            }
-        }
-    </script>
-</body>
-</html>
+                alert('Please enter both recipient address and amount
