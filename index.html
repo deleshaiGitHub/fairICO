@@ -50,7 +50,19 @@
 
     <script>
         async function connectWallet() {
-            if (window.ethereum) {
+            if (typeof window.ethereum !== 'undefined') {
+                console.log('MetaMask detected.');
                 try {
                     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    document.getElementById('walletAddress').
+                    document.getElementById('walletAddress').innerText = `Connected: ${accounts[0]}`;
+                } catch (error) {
+                    console.error('Error connecting wallet:', error);
+                    alert('Failed to connect wallet. Please try again.');
+                }
+            } else {
+                alert('MetaMask is not installed. Please install MetaMask and try again.');
+            }
+        }
+    </script>
+</body>
+</html>
