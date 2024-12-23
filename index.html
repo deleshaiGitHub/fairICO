@@ -3,17 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web3 Test</title>
-    <script src="https://cdn.ethers.io/lib/ethers-5.6.umd.min.js"></script>
+    <title>Web3 Test - Updated</title>
+    <!-- Updated Ethers.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.6.9/ethers.umd.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             margin: 0;
             padding: 0;
+            background-color: #f4f4f9; /* Updated background color */
         }
         header {
-            background-color: #282c34;
+            background-color: #6a1b9a; /* New purple header color */
             color: white;
             padding: 1em;
         }
@@ -23,46 +25,25 @@
         button {
             padding: 0.5em 1em;
             font-size: 1rem;
-            background-color: #4CAF50;
+            background-color: #ff5722; /* Updated orange button color */
             color: white;
             border: none;
             cursor: pointer;
             border-radius: 5px;
         }
         button:hover {
-            background-color: #45a049;
+            background-color: #e64a19; /* Slightly darker orange for hover */
         }
         .wallet-address {
             margin-top: 1em;
             font-weight: bold;
+            color: #333; /* Updated text color */
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Web3 Wallet Connection</h1>
+        <h1>Web3 Wallet Connection - Updated</h1>
     </header>
     <main>
-        <p>Click the button below to connect your wallet:</p>
-        <button onclick="connectWallet()">Connect Wallet</button>
-        <div id="walletAddress" class="wallet-address">No wallet connected</div>
-    </main>
-
-    <script>
-        async function connectWallet() {
-            if (typeof window.ethereum !== 'undefined') {
-                console.log('MetaMask detected.');
-                try {
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    document.getElementById('walletAddress').innerText = `Connected: ${accounts[0]}`;
-                } catch (error) {
-                    console.error('Error connecting wallet:', error);
-                    alert('Failed to connect wallet. Please try again.');
-                }
-            } else {
-                alert('MetaMask is not installed. Please install MetaMask and try again.');
-            }
-        }
-    </script>
-</body>
-</html>
+        <p>Click the button below to connect your wallet:</
