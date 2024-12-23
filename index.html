@@ -47,17 +47,14 @@
     </header>
     <main>
         <p>Click the button below to connect your wallet:</p>
-        <button onclick="connectWallet()">Connect Wallet</button>
+        <button id="connectButton">Connect Wallet</button>
         <div id="walletAddress" class="wallet-address">No wallet connected</div>
     </main>
 
     <!-- JavaScript -->
     <script>
-        async function connectWallet() {
-            if (typeof window.ethereum !== 'undefined') {
-                console.log('MetaMask detected.');
-                try {
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    document.getElementById('walletAddress').innerText = `Connected: ${accounts[0]}`;
-                } catch (error) {
-                    console.error('Error connecting wallet:', error);
+        // Wait for the DOM to fully load
+        document.addEventListener("DOMContentLoaded", function () {
+            const connectButton = document.getElementById('connectButton');
+
+            connectButton.addEventListener('click', asy
