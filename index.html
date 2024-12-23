@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Connect Solana Wallet</title>
   <!-- Correct CDN Link -->
-  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.76.0/dist/web3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.76.0/dist/web3.umd.min.js"></script>
 </head>
 <body>
   <h1>Welcome to Solana App</h1>
@@ -13,7 +13,8 @@
   <div id="user-info"></div>
 
   <script>
-    const { Connection, PublicKey, clusterApiUrl, LAMPORTS_PER_SOL } = solanaWeb3;
+    // Access solanaWeb3 directly
+    const { Connection, PublicKey, LAMPORTS_PER_SOL } = solanaWeb3;
 
     // Replace with your dedicated RPC endpoint
     const MAINNET_RPC_URL = 'https://your-quicknode-or-custom-rpc-url.com';
