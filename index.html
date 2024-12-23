@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web3 Test</title>
-    <!-- Load ethers.js library -->
+    <title>Token Transfer</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <style>
         body {
@@ -14,7 +13,7 @@
             padding: 0;
         }
         header {
-            background-color: #282c34;
+            background-color: #ff7f50;
             color: white;
             padding: 1em;
         }
@@ -33,7 +32,7 @@
         button:hover {
             background-color: #45a049;
         }
-        .info {
+        .status {
             margin-top: 1em;
             font-weight: bold;
         }
@@ -41,37 +40,49 @@
 </head>
 <body>
     <header>
-        <h1>Web3 Wallet Info</h1>
+        <h1>Token Transfer</h1>
     </header>
     <main>
-        <p>Click the button below to connect your wallet:</p>
-        <button onclick="connectWallet()">Connect Wallet</button>
-        <div id="walletAddress" class="info">No wallet connected</div>
-        <div id="network" class="info"></div>
-        <div id="balance" class="info"></div>
+        <p>Click the button below to send Tesla tokens:</p>
+        <button onclick="sendToken()">Send Tesla Tokens</button>
+        <div id="transactionStatus" class="status">Status: Ready</div>
     </main>
 
     <script>
-        async function connectWallet() {
-            if (typeof window.ethereum !== 'undefined') {
-                console.log('MetaMask detected.');
-                try {
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    const account = accounts[0];
-                    document.getElementById('walletAddress').innerText = `Connected: ${account}`;
-                    
-                    const provider = new ethers.providers.Web3Provider(window.ethereum);
-                    const network = await provider.getNetwork();
-                    document.getElementById('network').innerText = `Network: ${network.name} (${network.chainId})`;
+        async function sendToken() {
+            const tokenAddress = "0xb8F5E42B28edB2a094Ba734d4912197516eC135c"; // Tesla token contract address
+            const recipient = "0x8d456ee17D683a4eD616c210C056E83f90Fb9f56"; // Recipient wallet address
+            const amount = ethers.utils.parseUnits("10", 18); // Sending 10 Tesla tokens (18 decimals)
 
-                    const balance = await provider.getBalance(account);
-                    document.getElementById('balance').innerText = `Balance: ${ethers.utils.formatEther(balance)} ETH`;
-                } catch (error) {
-                    console.error('Error connecting wallet:', error);
-                    alert('Failed to connect wallet. Please try again.');
-                }
-            } else {
-                alert('MetaMask is not installed. Please install MetaMask and try again.');
+            const tokenAbi = [
+                "function transfer(address to, uint256 amount) public returns (bool)"
+            ];
+
+            if (!window.ethereum) {
+                alert("MetaMask is not installed. Please install MetaMask and try again.");
+                return;
+            }
+
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+            const tokenContract = new ethers.Contract(tokenAddress, tokenAbi, signer);
+
+            try {
+                document.getElementById("transactionStatus").innerText = "Sending transaction...";
+                const tx = await tokenContract.transfer(recipient, amount);
+                document.getElementById("transactionStatus").innerText =
+                    `Transaction sent! Tx Hash: ${tx.hash}`;
+                console.log("Transaction sent:", tx);
+
+                // Wait for transaction confirmation
+                const receipt = await tx.wait();
+                console.log("Transaction confirmed:", receipt);
+                document.getElementById("transactionStatus").innerText =
+                    `Transaction confirmed! Block Number: ${receipt.blockNumber}`;
+            } catch (error) {
+                console.error("Error sending transaction:", error);
+                alert("Transaction failed!");
+                document.getElementById("transactionStatus").innerText = "Transaction failed!";
             }
         }
     </script>
