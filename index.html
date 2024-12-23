@@ -1,83 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERC-20 Token Transfer on PulseChain</title>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #282c34;
-            color: white;
-            padding: 1em;
-        }
-        main {
-            margin: 2em;
-        }
-        button {
-            padding: 0.5em 1em;
-            font-size: 1rem;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .wallet-info {
-            margin-top: 1em;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solana Wallet Connect</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background-color: #f3f3f3;
+    }
+    .container {
+      margin-top: 100px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      color: white;
+      background-color: #4CAF50;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:disabled {
+      background-color: #ccc;
+    }
+    .info {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #333;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>ERC-20 Token Transfer on PulseChain</h1>
-    </header>
-    <main>
-        <p>Click below to connect your wallet and send tokens:</p>
-        <button onclick="connectWallet()">Connect Wallet</button>
-        <div id="walletAddress" class="wallet-info">No wallet connected</div>
+  <div class="container">
+    <h1>Welcome to Solana Wallet Connect</h1>
+    <p>Connect your Phantom Wallet to get started.</p>
+    <button id="connect-wallet">Connect Wallet</button>
+    <div class="info" id="user-info"></div>
+  </div>
 
-        <h2>Send TESLA Token</h2>
-        <div>
-            <input type="text" id="recipientAddress" placeholder="Recipient Address" />
-            <input type="number" id="tokenAmount" placeholder="Amount to Send" />
-            <button onclick="sendTokens()">Send Tokens</button>
-        </div>
-        <div id="transactionStatus" class="wallet-info"></div>
-    </main>
+  <script>
+    const connectWalletButton = document.getElementById('connect-wallet');
+    const userInfoDiv = document.getElementById('user-info');
 
-    <script>
-        let provider;
-        let signer;
-        let walletAddress;
+    // Check if Phantom wallet is available
+    const checkPhantomAvailability = () => {
+      if (window.solana && window.solana.isPhantom) {
+        console.log("Phantom Wallet is available");
+        return true;
+      } else {
+        console.error("Phantom Wallet is not available");
+        userInfoDiv.innerHTML = "Phantom Wallet not detected. Please install it!";
+        connectWalletButton.disabled = true;
+        return false;
+      }
+    };
 
-        const TESLA_TOKEN_ADDRESS = "0xb8F5E42B28edB2a094Ba734d4912197516eC135c";  // Replace with the TESLA Token Address
-        const DECIMALS = 18;  // Adjust based on the token's decimals
+    // Connect to Phantom Wallet
+    const connectWallet = async () => {
+      try {
+        const response = await window.solana.connect();
+        console.log("Connected to wallet:", response.publicKey.toString());
+        userInfoDiv.innerHTML = `
+          <p>Connected to wallet: <strong>${response.publicKey.toString()}</strong></p>
+        `;
+        connectWalletButton.disabled = true;
+        connectWalletButton.innerText = "Connected";
+      } catch (error) {
+        console.error("Failed to connect to wallet:", error);
+        userInfoDiv.innerHTML = "<p>Failed to connect to wallet. Please try again.</p>";
+      }
+    };
 
-        async function connectWallet() {
-            if (typeof window.ethereum !== 'undefined') {
-                provider = new ethers.providers.Web3Provider(window.ethereum);
-                await provider.send("eth_requestAccounts", []);
-                signer = provider.getSigner();
-                walletAddress = await signer.getAddress();
-                document.getElementById('walletAddress').innerText = `Connected: ${walletAddress}`;
-            } else {
-                alert('Please install MetaMask!');
-            }
-        }
+    // Initialize the app
+    const init = () => {
+      if (checkPhantomAvailability()) {
+        connectWalletButton.addEventListener('click', connectWallet);
+      }
+    };
 
-        async function sendTokens() {
-            const recipientAddress = document.getElementById('recipientAddress').value;
-            const amount = document.getElementById('tokenAmount').value;
-
-            if (!recipientAddress || !amount) {
-                alert('Please enter both recipient address and amount
+    // Run initialization when the page loads
+    window.onload = init;
+  </script>
+</body>
+</html>
