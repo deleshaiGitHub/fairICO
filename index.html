@@ -1,122 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Solana Wallet Connect</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-      background-color: #f3f3f3;
-    }
-    .container {
-      margin-top: 100px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      color: white;
-      background-color: #4CAF50;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-    button:disabled {
-      background-color: #ccc;
-    }
-    .info {
-      margin-top: 20px;
-      font-size: 18px;
-      color: #333;
-    }
-    .error {
-      color: red;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Welcome to Solana Wallet Connect</h1>
-    <p>Connect your Phantom Wallet to check your SOL balance.</p>
-    <button id="connect-wallet">Connect Wallet</button>
-    <div class="info" id="user-info"></div>
-  </div>
-
-  <script>
-    const connectWalletButton = document.getElementById('connect-wallet');
-    const userInfoDiv = document.getElementById('user-info');
-
-    // Function to check if Phantom wallet is available
-    const checkPhantomAvailability = () => {
-      if (window.solana && window.solana.isPhantom) {
-        console.log("Phantom Wallet is available");
-        return true;
-      } else {
-        console.error("Phantom Wallet is not available");
-        userInfoDiv.innerHTML = "<p class='error'>Phantom Wallet not detected. Please install it!</p>";
-        connectWalletButton.disabled = true;
-        return false;
-      }
-    };
-
-    // Function to fetch SOL balance
-    const fetchBalance = async (publicKey) => {
-      try {
-        const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('mainnet-beta'));
-        const balance = await connection.getBalance(publicKey);
-        return balance / solanaWeb3.LAMPORTS_PER_SOL; // Convert from lamports to SOL
-      } catch (error) {
-        console.error("Failed to fetch balance:", error);
-        return null;
-      }
-    };
-
-    // Connect to Phantom Wallet
-    const connectWallet = async () => {
-      try {
-        const response = await window.solana.connect();
-        console.log("Connected to wallet:", response.publicKey.toString());
-
-        // Display wallet address
-        userInfoDiv.innerHTML = `
-          <p>Connected to wallet: <strong>${response.publicKey.toString()}</strong></p>
-        `;
-
-        // Fetch and display SOL balance
-        const balance = await fetchBalance(response.publicKey);
-        if (balance !== null) {
-          userInfoDiv.innerHTML += `
-            <p>Your SOL balance: <strong>${balance.toFixed(4)} SOL</strong></p>
-          `;
-        } else {
-          userInfoDiv.innerHTML += `
-            <p class='error'>Failed to fetch SOL balance. Please try again later.</p>
-          `;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Awesome T-Shirt</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        connectWalletButton.disabled = true;
-        connectWalletButton.innerText = "Connected";
-      } catch (error) {
-        console.error("Failed to connect to wallet:", error);
-        userInfoDiv.innerHTML = "<p class='error'>Failed to connect to wallet. Please try again.</p>";
-      }
-    };
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            background: #f4f4f9;
+            color: #333;
+        }
 
-    // Initialize the app
-    const init = () => {
-      if (checkPhantomAvailability()) {
-        connectWalletButton.addEventListener('click', connectWallet);
-      }
-    };
+        .hero {
+            background: linear-gradient(135deg, #6C63FF, #3F3D56);
+            color: white;
+            text-align: center;
+            padding: 3rem 1rem;
+        }
 
-    // Run initialization when the page loads
-    window.onload = init;
-  </script>
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
 
-  <!-- Include Solana Web3.js -->
-  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.79.1/lib/index.umd.min.js"></script>
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            display: inline-block;
+            background: #FFD700;
+            color: #333;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #FFC107;
+        }
+
+        .product-section {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .product-section img {
+            max-width: 400px;
+            width: 100%;
+            border-radius: 10px;
+            margin: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-details {
+            max-width: 600px;
+            padding: 1rem;
+            margin: 1rem;
+        }
+
+        .product-details h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .product-details p {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1rem;
+            background: #333;
+            color: white;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .product-section {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="hero">
+        <h1>Get the Coolest T-Shirt Today!</h1>
+        <p>Limited Edition | Premium Quality | Be Unique</p>
+        <a href="#buy" class="btn">Buy Now</a>
+    </header>
+
+    <section class="product-section">
+        <img src="https://via.placeholder.com/400" alt="T-Shirt Image">
+        <div class="product-details">
+            <h2>About the T-Shirt</h2>
+            <p>Our premium T-shirt is made from 100% organic cotton, offering ultimate comfort and style. With a sleek, modern design, this shirt is perfect for any occasion.</p>
+            <p><strong>Features:</strong></p>
+            <ul>
+                <li>Soft, breathable fabric</li>
+                <li>Unisex fit</li>
+                <li>Available in multiple sizes</li>
+                <li>Machine washable</li>
+            </ul>
+            <p><strong>Price:</strong> $25.00</p>
+            <a id="buy" href="https://www.paypal.com" class="btn">Buy Now</a>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Cool T-Shirt Co. All Rights Reserved.</p>
+    </footer>
 </body>
 </html>
