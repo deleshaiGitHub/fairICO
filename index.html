@@ -91,10 +91,42 @@
             margin-top: 2rem;
         }
 
-        @media (max-width: 768px) {
-            .product-section {
-                flex-direction: column;
-            }
+        form {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            margin: 2rem auto;
+        }
+
+        form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        form input, form select, form textarea {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        form button {
+            background: #6C63FF;
+            color: white;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        form button:hover {
+            background: #574bcd;
         }
     </style>
 </head>
@@ -102,7 +134,7 @@
     <header class="hero">
         <h1>Get the Coolest T-Shirt Today!</h1>
         <p>Limited Edition | Premium Quality | Be Unique</p>
-        <a href="#buy" class="btn">Buy Now</a>
+        <a href="#order" class="btn">Order Now</a>
     </header>
 
     <section class="product-section">
@@ -118,8 +150,34 @@
                 <li>Machine washable</li>
             </ul>
             <p><strong>Price:</strong> $25.00</p>
-            <a id="buy" href="https://www.paypal.com" class="btn">Buy Now</a>
         </div>
+    </section>
+
+    <section id="order">
+        <form action="mailto:deleshai@gmx.com" method="POST" enctype="text/plain">
+            <h2>Order Your T-Shirt</h2>
+            <label for="name">Full Name:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="email">Email Address:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="size">Size:</label>
+            <select id="size" name="size" required>
+                <option value="S">Small</option>
+                <option value="M">Medium</option>
+                <option value="L">Large</option>
+                <option value="XL">Extra Large</option>
+            </select>
+
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" name="quantity" min="1" required>
+
+            <label for="address">Shipping Address:</label>
+            <textarea id="address" name="address" rows="4" required></textarea>
+
+            <button type="submit">Place Order</button>
+        </form>
     </section>
 
     <footer>
