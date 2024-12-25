@@ -3,185 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Awesome T-Shirt</title>
+    <title>PulseChain Liquidity Pool Info</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-            background: #f4f4f9;
-            color: #333;
+            font-family: Arial, sans-serif;
+            margin: 20px;
         }
-
-        .hero {
-            background: linear-gradient(135deg, #6C63FF, #3F3D56);
-            color: white;
-            text-align: center;
-            padding: 3rem 1rem;
-        }
-
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-        }
-
-        .btn {
-            display: inline-block;
-            background: #FFD700;
-            color: #333;
-            padding: 0.75rem 1.5rem;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: bold;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: background 0.3s;
-        }
-
-        .btn:hover {
-            background: #FFC107;
-        }
-
-        .product-section {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem;
-        }
-
-        .product-section img {
-            max-width: 400px;
-            width: 100%;
-            border-radius: 10px;
-            margin: 1rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .product-details {
-            max-width: 600px;
-            padding: 1rem;
-            margin: 1rem;
-        }
-
-        .product-details h2 {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
-
-        .product-details p {
-            font-size: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        footer {
-            text-align: center;
-            padding: 1rem;
-            background: #333;
-            color: white;
-            margin-top: 2rem;
-        }
-
-        form {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 5px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 500px;
-            margin: 2rem auto;
-        }
-
-        form label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: bold;
-        }
-
-        form input, form select, form textarea {
-            width: 100%;
-            padding: 0.5rem;
-            margin-bottom: 1rem;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        form button {
-            background: #6C63FF;
-            color: white;
-            padding: 0.75rem;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        form button:hover {
-            background: #574bcd;
+        #output {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
         }
     </style>
 </head>
 <body>
-    <header class="hero">
-        <h1>Get the Coolest T-Shirt Today!</h1>
-        <p>Limited Edition | Premium Quality | Be Unique</p>
-        <a href="#order" class="btn">Order Now</a>
-    </header>
+    <h1>USDC/PLS Liquidity Pool</h1>
+    <button onclick="fetchPoolData()">Get Pool Data</button>
+    <div id="output">Click the button to fetch liquidity pool info...</div>
 
-    <section class="product-section">
-        <img src="https://via.placeholder.com/400" alt="T-Shirt Image">
-        <div class="product-details">
-            <h2>About the T-Shirt</h2>
-            <p>Our premium T-shirt is made from 100% organic cotton, offering ultimate comfort and style. With a sleek, modern design, this shirt is perfect for any occasion.</p>
-            <p><strong>Features:</strong></p>
-            <ul>
-                <li>Soft, breathable fabric</li>
-                <li>Unisex fit</li>
-                <li>Available in multiple sizes</li>
-                <li>Machine washable</li>
-            </ul>
-            <p><strong>Price:</strong> $25.00</p>
-        </div>
-    </section>
+    <script>
+        // Ethers.js setup
+        const provider = new ethers.providers.JsonRpcProvider("https://rpc.pulsechain.com");
 
-    <section id="order">
-        <form action="mailto:deleshai@gmx.com" method="POST" enctype="text/plain">
-            <h2>Order Your T-Shirt</h2>
-            <label for="name">Full Name:</label>
-            <input type="text" id="name" name="name" required>
+        // Liquidity pool contract address and ABI
+        const poolAddress = "0x6753560538ECa67617A9Ce605178F788bE7E524E";
+        const poolABI = [
+            "function getReserves() view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)",
+            "function token0() view returns (address)",
+            "function token1() view returns (address)"
+        ];
 
-            <label for="email">Email Address:</label>
-            <input type="email" id="email" name="email" required>
+        async function fetchPoolData() {
+            const output = document.getElementById("output");
+            output.innerHTML = "Fetching data...";
 
-            <label for="size">Size:</label>
-            <select id="size" name="size" required>
-                <option value="S">Small</option>
-                <option value="M">Medium</option>
-                <option value="L">Large</option>
-                <option value="XL">Extra Large</option>
-            </select>
+            try {
+                // Fetch reserves and token addresses
+                const poolContract = new ethers.Contract(poolAddress, poolABI, provider);
+                const [reserve0, reserve1] = await poolContract.getReserves();
+                const token0 = await poolContract.token0();
+                const token1 = await poolContract.token1();
 
-            <label for="quantity">Quantity:</label>
-            <input type="number" id="quantity" name="quantity" min="1" required>
+                // Determine which token is USDC and which is PLS
+                const usdcAddress = "0xA0b86991c6218B36c1d19D4a2e9Eb0cE3606eb48"; // USDC contract address
+                const usdcReserve = token0.toLowerCase() === usdcAddress.toLowerCase() ? reserve0 : reserve1;
+                const plsReserve = token0.toLowerCase() === usdcAddress.toLowerCase() ? reserve1 : reserve0;
 
-            <label for="address">Shipping Address:</label>
-            <textarea id="address" name="address" rows="4" required></textarea>
+                // Calculate price (PLS per USDC)
+                const pricePLSPerUSDC = plsReserve / usdcReserve;
 
-            <button type="submit">Place Order</button>
-        </form>
-    </section>
-
-    <footer>
-        <p>&copy; 2024 Cool T-Shirt Co. All Rights Reserved.</p>
-    </footer>
+                // Display data
+                output.innerHTML = `
+                    <h2>Liquidity Pool Info</h2>
+                    <p><strong>USDC Reserve:</strong> ${ethers.utils.formatUnits(usdcReserve, 6)} USDC</p>
+                    <p><strong>PLS Reserve:</strong> ${ethers.utils.formatUnits(plsReserve, 18)} PLS</p>
+                    <p><strong>Price:</strong> ${pricePLSPerUSDC.toFixed(6)} PLS per USDC</p>
+                `;
+            } catch (error) {
+                output.innerHTML = `Error: ${error.message}`;
+            }
+        }
+    </script>
 </body>
 </html>
