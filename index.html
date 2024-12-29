@@ -3,52 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Price Fetching Page</title>
+    <title>DCA Contract Interaction</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 </head>
 <body>
-    <h1>Teddy Price Fetcher</h1>
-    <p>Price: <span id="price">Loading...</span></p>
+    <h1>DCA Contract Interaction</h1>
+
+    <!-- Price Display -->
+    <p>Current Teddy Price: <span id="price">Loading...</span></p>
+
+    <!-- Deposit Interaction -->
+    <h2>Deposit</h2>
+    <form id="depositForm">
+        <label for="daiAmount">DAI Amount:</label>
+        <input type="text" id="daiAmount" name="daiAmount" required>
+        <label for="plsAmount">PLS Amount:</label>
+        <input type="text" id="plsAmount" name="plsAmount" required>
+        <button type="submit">Deposit</button>
+    </form>
+    <p id="depositStatus"></p>
 
     <script>
-        // Set up provider to connect to PulseChain RPC
+        // Set up provider and contract
         const provider = new ethers.providers.JsonRpcProvider("https://rpc.pulsechain.com");
-
-        // Set up the contract address and ABI
-        const contractAddress = "0xF055ee36f683Ed9d7749a20a06ceE0b4585f75e5"; // Price Oracle Contract Address
+        const signer = provider.getSigner();
+        const contractAddress = "0xF055ee36f683Ed9d7749a20a06ceE0b4585f75e5";
         const abi = [
+            // Include the full ABI here
+            {
+                "inputs": [
+                    { "internalType": "uint256", "name": "daiAmount", "type": "uint256" },
+                    { "internalType": "uint256", "name": "plsAmount", "type": "uint256" }
+                ],
+                "name": "deposit",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
             {
                 "inputs": [],
                 "name": "getTeddyPrice",
                 "outputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "priceInDai",
-                        "type": "uint256"
-                    }
+                    { "internalType": "uint256", "name": "priceInDai", "type": "uint256" }
                 ],
                 "stateMutability": "view",
                 "type": "function"
-            }
+            },
+            // Add the rest of your ABI functions here
         ];
 
-        // Initialize contract instance
         const contract = new ethers.Contract(contractAddress, abi, provider);
 
-        // Function to fetch price and display on the page
+        // Fetch price
         async function fetchPrice() {
             try {
                 const price = await contract.getTeddyPrice();
-                const priceInDai = ethers.utils.formatUnits(price, 18); // Convert to human-readable format
-                document.getElementById("price").textContent = `${priceInDai} DAI`;
+                const formattedPrice = ethers.utils.formatUnits(price, 18);
+                document.getElementById("price").textContent = `${formattedPrice} DAI`;
             } catch (error) {
                 console.error("Error fetching price:", error);
                 document.getElementById("price").textContent = "Error fetching price.";
             }
         }
-
-        // Fetch price on page load
         fetchPrice();
+
+        // Handle deposit
+        document.getElementById("depositForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const daiAmount = document.getElementById("daiAmount").value;
+            const plsAmount = document.getElementById("plsAmount").value;
+
+            try {
+                const depositContract = new ethers.Contract(contractAddress, abi, signer);
+                const daiAmountParsed = ethers.utils.parseUnits(daiAmount, 18);
+                const plsAmountParsed = ethers.utils.parseUnits(plsAmount, 18);
+                const tx = await depositContract.deposit(daiAmountParsed, plsAmountParsed);
+                document.getElementById("depositStatus").textContent = "Transaction sent, awaiting confirmation...";
+                await tx.wait();
+                document.getElementById("depositStatus").textContent = "Deposit successful!";
+            } catch (error) {
+                console.error("Error during deposit:", error);
+                document.getElementById("depositStatus").textContent = "Error during deposit.";
+            }
+        });
     </script>
 </body>
 </html>
