@@ -15,21 +15,21 @@
 
     async function testRPC() {
       try {
-        // Wait for ethers.js to be fully loaded
-        if (typeof ethers !== 'undefined') {
-          const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
-          const blockNumber = await provider.getBlockNumber();
-          document.getElementById("status").innerText = `Connected! Current block number: ${blockNumber}`;
-        } else {
+        // Check if ethers.js is loaded
+        if (typeof ethers === 'undefined') {
           throw new Error("Ethers.js not loaded");
         }
+
+        const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+        const blockNumber = await provider.getBlockNumber();
+        document.getElementById("status").innerText = `Connected! Current block number: ${blockNumber}`;
       } catch (error) {
         document.getElementById("status").innerText = `Failed to connect: ${error.message}`;
       }
     }
 
-    // Run the RPC test once the page is fully loaded
-    window.onload = testRPC;
+    // Delay the RPC test to ensure ethers.js is fully loaded
+    setTimeout(testRPC, 1000); // Delay for 1 second
   </script>
 </body>
 </html>
