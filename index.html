@@ -3,69 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PulseChain Liquidity Pool Info</title>
-    <!-- Load Ethers.js -->
-    <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.umd.min.js"></script>
+    <title>Token Monitor</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 2rem;
         }
-        #output {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            background-color: #f9f9f9;
+        .status {
+            color: green;
+        }
+        .error {
+            color: red;
         }
     </style>
 </head>
 <body>
-    <h1>USDC/PLS Liquidity Pool</h1>
-    <button onclick="fetchPoolData()">Get Pool Data</button>
-    <div id="output">Click the button to fetch liquidity pool info...</div>
-
-    <script>
-        // Ethers.js setup
-        const provider = new ethers.providers.JsonRpcProvider("https://rpc.pulsechain.com");
-
-        // Liquidity pool contract address and ABI
-        const poolAddress = "0x6753560538ECa67617A9Ce605178F788bE7E524E";
-        const poolABI = [
-            "function getReserves() view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)",
-            "function token0() view returns (address)",
-            "function token1() view returns (address)"
-        ];
-
-        async function fetchPoolData() {
-            const output = document.getElementById("output");
-            output.innerHTML = "Fetching data...";
-
-            try {
-                // Fetch reserves and token addresses
-                const poolContract = new ethers.Contract(poolAddress, poolABI, provider);
-                const [reserve0, reserve1] = await poolContract.getReserves();
-                const token0 = await poolContract.token0();
-                const token1 = await poolContract.token1();
-
-                // Determine which token is USDC and which is PLS
-                const usdcAddress = "0xA0b86991c6218B36c1d19D4a2e9Eb0cE3606eb48"; // USDC contract address
-                const usdcReserve = token0.toLowerCase() === usdcAddress.toLowerCase() ? reserve0 : reserve1;
-                const plsReserve = token0.toLowerCase() === usdcAddress.toLowerCase() ? reserve1 : reserve0;
-
-                // Calculate price (PLS per USDC)
-                const pricePLSPerUSDC = plsReserve / usdcReserve;
-
-                // Display data
-                output.innerHTML = `
-                    <h2>Liquidity Pool Info</h2>
-                    <p><strong>USDC Reserve:</strong> ${ethers.utils.formatUnits(usdcReserve, 6)} USDC</p>
-                    <p><strong>PLS Reserve:</strong> ${ethers.utils.formatUnits(plsReserve, 18)} PLS</p>
-                    <p><strong>Price:</strong> ${pricePLSPerUSDC.toFixed(6)} PLS per USDC</p>
-                `;
-            } catch (error) {
-                output.innerHTML = `Error: ${error.message}`;
-            }
-        }
-    </script>
+    <h1>Token Monitor</h1>
+    <p>Current Token Price: <span id="tokenPrice">Loading...</span></p>
+    <p>Status: <span id="status" class="status">Monitoring...</span></p>
 </body>
+<script src="script.js"></script>
 </html>
