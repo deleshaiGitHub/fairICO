@@ -3,191 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DCA Contract Interaction</title>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        .input-group {
-            margin-bottom: 10px;
-        }
-    </style>
+    <title>DCA Bot UI</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.6.1/dist/web3.min.js"></script>
 </head>
 <body>
-    <h1>DCA Contract Interaction</h1>
-    <p>Contract Address: <strong>0x303CDf9a4E9730d281162e086E2F21C2b3Ab6b7d</strong></p>
+    <h1>DCA Bot Interface</h1>
 
-    <div>
-        <h2>Deposit Funds</h2>
-        <div class="input-group">
-            <label for="daiAmount">DAI Amount:</label>
-            <input type="number" id="daiAmount" step="0.01" placeholder="Enter DAI amount">
-        </div>
-        <div class="input-group">
-            <label for="plsAmount">PLS Amount:</label>
-            <input type="number" id="plsAmount" step="0.01" placeholder="Enter PLS amount">
-        </div>
-        <button id="depositButton">Deposit</button>
-    </div>
+    <!-- Deposit Section -->
+    <h2>Deposit</h2>
+    <label for="daiAmount">DAI Amount: </label>
+    <input type="number" id="daiAmount" placeholder="DAI Amount">
+    <br>
+    <label for="plsAmount">PLS Amount: </label>
+    <input type="number" id="plsAmount" placeholder="PLS Amount">
+    <br>
+    <button onclick="deposit()">Deposit</button>
 
-    <div>
-        <h2>Execute DCA</h2>
-        <button id="executeDcaButton">Execute DCA</button>
-    </div>
+    <!-- Withdraw Section -->
+    <h2>Withdraw</h2>
+    <button onclick="withdraw()">Withdraw</button>
 
-    <div>
-        <h2>Price Information</h2>
-        <p id="priceInfo">Fetching price...</p>
-    </div>
+    <!-- Initialize DCA Section -->
+    <h2>Initialize DCA</h2>
+    <label for="baseOrderSize">Base Order Size: </label>
+    <input type="number" id="baseOrderSize">
+    <br>
+    <label for="safetyOrderSize">Safety Order Size: </label>
+    <input type="number" id="safetyOrderSize">
+    <br>
+    <label for="priceDeviation">Price Deviation (%): </label>
+    <input type="number" id="priceDeviation">
+    <br>
+    <label for="maxSafetyOrders">Max Safety Orders: </label>
+    <input type="number" id="maxSafetyOrders">
+    <br>
+    <label for="safetyOrderVolumeScale">Safety Order Volume Scale: </label>
+    <input type="number" id="safetyOrderVolumeScale">
+    <br>
+    <label for="safetyOrderStepScale">Safety Order Step Scale: </label>
+    <input type="number" id="safetyOrderStepScale">
+    <br>
+    <button onclick="initializeDCA()">Initialize DCA</button>
+
+    <!-- Execute DCA Section -->
+    <h2>Execute DCA</h2>
+    <button onclick="executeDCA()">Execute DCA</button>
+
+    <!-- Stop DCA Section -->
+    <h2>Stop DCA</h2>
+    <button onclick="stopDCA()">Stop DCA</button>
 
     <script>
-        const contractAddress = "0x303CDf9a4E9730d281162e086E2F21C2b3Ab6b7d"; // DCA Contract address
-        const abi = [
+        // Web3 setup
+        const web3 = new Web3(window.ethereum);
+        let userAccount;
+        window.ethereum.request({ method: 'eth_requestAccounts' }).then(accounts => {
+            userAccount = accounts[0];
+        });
+
+        // Contract Addresses
+        const DAI_CONTRACT_ADDRESS = "0x6B175474E89094C44Da98b954EedeAC495271d0F";  // DAI contract address
+        const PLS_CONTRACT_ADDRESS = "0xA1077a294dDE1B09bB078844df40758a5D0f9a27";  // PLS contract address
+        const CONTRACT_ADDRESS = "0x303CDf9a4E9730d281162e086E2F21C2b3Ab6b7d";  // DCA contract address
+
+        // ABI for interacting with the DCA contract
+        const DCA_ABI = [
             {
+                "constant": false,
                 "inputs": [
-                    { "internalType": "uint256", "name": "daiAmount", "type": "uint256" },
-                    { "internalType": "uint256", "name": "plsAmount", "type": "uint256" }
+                    { "name": "daiAmount", "type": "uint256" },
+                    { "name": "plsAmount", "type": "uint256" }
                 ],
                 "name": "deposit",
                 "outputs": [],
+                "payable": false,
                 "stateMutability": "nonpayable",
                 "type": "function"
             },
             {
+                "constant": false,
+                "inputs": [],
+                "name": "withdraw",
+                "outputs": [],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [
+                    { "name": "baseOrderSize", "type": "uint256" },
+                    { "name": "safetyOrderSize", "type": "uint256" },
+                    { "name": "priceDeviation", "type": "uint256" },
+                    { "name": "maxSafetyOrders", "type": "uint256" },
+                    { "name": "safetyOrderVolumeScale", "type": "uint256" },
+                    { "name": "safetyOrderStepScale", "type": "uint256" }
+                ],
+                "name": "initializeDCA",
+                "outputs": [],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "constant": false,
                 "inputs": [],
                 "name": "executeDCA",
                 "outputs": [],
+                "payable": false,
                 "stateMutability": "nonpayable",
                 "type": "function"
             },
             {
-                "inputs": [
-                    { "internalType": "address", "name": "_oracleAddress", "type": "address" },
-                    { "internalType": "address", "name": "_teddyAddress", "type": "address" },
-                    { "internalType": "address", "name": "_daiAddress", "type": "address" },
-                    { "internalType": "address", "name": "_plsAddress", "type": "address" }
-                ],
+                "constant": false,
+                "inputs": [],
+                "name": "stopDCA",
+                "outputs": [],
+                "payable": false,
                 "stateMutability": "nonpayable",
-                "type": "constructor"
-            },
-            {
-                "inputs": [],
-                "name": "oracleAddress",
-                "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "plsAddress",
-                "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "teddyAddress",
-                "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "daiAddress",
-                "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-                "stateMutability": "view",
                 "type": "function"
             }
         ];
 
-        // Connect to MetaMask
-        async function connectToMetaMask() {
-            if (!window.ethereum) {
-                alert("MetaMask is not installed!");
-                return null;
-            }
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            await provider.send("eth_requestAccounts", []); // Request account access
-            return provider.getSigner(); // Return the signer
-        }
+        // Creating contract instance
+        const dcaContract = new web3.eth.Contract(DCA_ABI, CONTRACT_ADDRESS);
 
         // Deposit function
-        document.getElementById("depositButton").addEventListener("click", async () => {
+        async function deposit() {
             const daiAmount = document.getElementById("daiAmount").value;
             const plsAmount = document.getElementById("plsAmount").value;
 
-            if (!daiAmount || !plsAmount || daiAmount <= 0 || plsAmount <= 0) {
-                alert("Please enter valid amounts for both DAI and PLS.");
-                return;
-            }
-
-            try {
-                const signer = await connectToMetaMask();
-                if (!signer) return;
-
-                const contract = new ethers.Contract(contractAddress, abi, signer);
-                const daiAmountWei = ethers.utils.parseUnits(daiAmount, 18);
-                const plsAmountWei = ethers.utils.parseUnits(plsAmount, 18);
-
-                const tx = await contract.deposit(daiAmountWei, plsAmountWei);
-                alert("Transaction submitted! Waiting for confirmation...");
-                await tx.wait();
-                alert("Deposit successful!");
-            } catch (error) {
-                console.error("Error depositing:", error);
-                alert("An error occurred. Check the console for details.");
-            }
-        });
-
-        // Execute DCA function
-        document.getElementById("executeDcaButton").addEventListener("click", async () => {
-            try {
-                const signer = await connectToMetaMask();
-                if (!signer) return;
-
-                const contract = new ethers.Contract(contractAddress, abi, signer);
-                const tx = await contract.executeDCA();
-                alert("Transaction submitted! Waiting for confirmation...");
-                await tx.wait();
-                alert("DCA executed successfully!");
-            } catch (error) {
-                console.error("Error executing DCA:", error);
-                alert("An error occurred. Check the console for details.");
-            }
-        });
-
-        // Fetch Price from Oracle
-        async function fetchPrice() {
-            try {
-                const signer = await connectToMetaMask();
-                if (!signer) return;
-
-                const contract = new ethers.Contract(contractAddress, abi, signer);
-                const oracleAddress = await contract.oracleAddress();
-                const teddyAddress = await contract.teddyAddress();
-
-                const oracleContract = new ethers.Contract(oracleAddress, [
-                    {
-                        "inputs": [{ "internalType": "address", "name": "_teddyAddress", "type": "address" }],
-                        "name": "getPrice",
-                        "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-                        "stateMutability": "view",
-                        "type": "function"
-                    }
-                ], signer);
-
-                const price = await oracleContract.getPrice(teddyAddress);
-                document.getElementById("priceInfo").innerText = "Teddy Price: " + ethers.utils.formatUnits(price, 18);
-            } catch (error) {
-                console.error("Error fetching price:", error);
-                document.getElementById("priceInfo").innerText = "Error fetching price.";
-            }
+            await dcaContract.methods.deposit(daiAmount, plsAmount).send({ from: userAccount });
         }
 
-        // Initialize price on page load
-        fetchPrice();
+        // Withdraw function
+        async function withdraw() {
+            await dcaContract.methods.withdraw().send({ from: userAccount });
+        }
+
+        // Initialize DCA function
+        async function initializeDCA() {
+            const baseOrderSize = document.getElementById("baseOrderSize").value;
+            const safetyOrderSize = document.getElementById("safetyOrderSize").value;
+            const priceDeviation = document.getElementById("priceDeviation").value;
+            const maxSafetyOrders = document.getElementById("maxSafetyOrders").value;
+            const safetyOrderVolumeScale = document.getElementById("safetyOrderVolumeScale").value;
+            const safetyOrderStepScale = document.getElementById("safetyOrderStepScale").value;
+
+            await dcaContract.methods.initializeDCA(
+                baseOrderSize,
+                safetyOrderSize,
+                priceDeviation,
+                maxSafetyOrders,
+                safetyOrderVolumeScale,
+                safetyOrderStepScale
+            ).send({ from: userAccount });
+        }
+
+        // Execute DCA function
+        async function executeDCA() {
+            await dcaContract.methods.executeDCA().send({ from: userAccount });
+        }
+
+        // Stop DCA function
+        async function stopDCA() {
+            await dcaContract.methods.stopDCA().send({ from: userAccount });
+        }
     </script>
 </body>
 </html>
