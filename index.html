@@ -3,49 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fetch SHIB Price</title>
+  <title>SHIB DCA Bot</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css"> <!-- Optional for styling -->
 </head>
 <body>
-  <h1>SHIB Price Tracker</h1>
-  <div id="status">Fetching SHIB price...</div>
-  <script>
-    const RPC_URL = "https://eth-mainnet.g.alchemy.com/v2/-b9x-YpIwfCG6EpnctUpMECRvRTKCZ9W";
-    const SHIB_ADDRESS = "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE";
-    const UNISWAP_ROUTER_ADDRESS = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
+  <h1>SHIB DCA Bot</h1>
 
-    async function fetchShibPrice() {
-      try {
-        const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+  <!-- Price Display -->
+  <div id="price-display">
+    <p>Current SHIB Price: <span id="shib-price">Fetching...</span></p>
+  </div>
 
-        // Uniswap Router ABI (simplified to fetch price)
-        const uniswapRouterABI = [
-          "function getAmountsOut(uint256 amountIn, address[] memory path) public view returns (uint256[] memory)"
-        ];
+  <!-- DCA Bot Configuration -->
+  <div id="dca-config">
+    <h2>DCA Bot Configuration</h2>
+    <label for="buy-amount">Buy Amount (ETH):</label>
+    <input type="number" id="buy-amount" placeholder="e.g., 0.1" step="0.01" />
 
-        const routerContract = new ethers.Contract(
-          UNISWAP_ROUTER_ADDRESS,
-          uniswapRouterABI,
-          provider
-        );
+    <label for="threshold">Price Drop Threshold (%) :</label>
+    <input type="number" id="threshold" placeholder="e.g., 5" step="0.1" />
 
-        // Define the path: SHIB -> WETH -> USDT
-        const WETH_ADDRESS = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
-        const USDT_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+    <label for="interval">Check Interval (seconds):</label>
+    <input type="number" id="interval" placeholder="e.g., 60" step="1" />
 
-        const path = [SHIB_ADDRESS, WETH_ADDRESS, USDT_ADDRESS];
-        const amountIn = ethers.utils.parseUnits("1", 18); // 1 SHIB (adjust decimals as needed)
+    <button id="start-bot">Start DCA Bot</button>
+    <button id="stop-bot" disabled>Stop DCA Bot</button>
+  </div>
 
-        const amountsOut = await routerContract.getAmountsOut(amountIn, path);
+  <!-- Status -->
+  <div id="status">
+    <h3>Status</h3>
+    <p id="bot-status">Bot is not running.</p>
+  </div>
 
-        const shibPriceInUSDT = ethers.utils.formatUnits(amountsOut[2], 6); // USDT has 6 decimals
-        document.getElementById("status").innerText = `SHIB Price: $${shibPriceInUSDT}`;
-      } catch (error) {
-        document.getElementById("status").innerText = `Error: ${error.message}`;
-      }
-    }
-
-    fetchShibPrice();
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
