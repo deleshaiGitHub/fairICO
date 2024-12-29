@@ -3,34 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RPC URL Tester</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script> <!-- Ensure the library is loaded -->
+  <title>Fetch SHIB Price</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 </head>
 <body>
-  <h1>RPC URL Tester</h1>
-  <div id="status">Connecting...</div>
+  <h1>SHIB Price Tracker</h1>
+  <div id="status">Fetching SHIB price...</div>
   <script>
-    const RPC_URL = "https://eth-mainnet.g.alchemy.com/v2/-b9x-YpIwfCG6EpnctUpMECRvRTKCZ9W"; // Alchemy endpoint
+    const RPC_URL = "https://eth-mainnet.g.alchemy.com/v2/-b9x-YpIwfCG6EpnctUpMECRvRTKCZ9W";
+    const SHIB_ADDRESS = "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE";
+    const UNISWAP_ROUTER_ADDRESS = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"; // Uniswap V2 Router
 
-    async function testRPC() {
+    async function fetchShibPrice() {
       try {
-        // Ensure Ethers.js is loaded
-        if (typeof ethers === "undefined") {
-          document.getElementById("status").innerText = "Failed to connect: Ethers.js not loaded.";
-          return;
-        }
-
-        // Connect to Alchemy RPC URL
         const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
-        const blockNumber = await provider.getBlockNumber();
-        document.getElementById("status").innerText = `Connected! Current block number: ${blockNumber}`;
+
+        // Uniswap Router ABI (simplified to fetch price)
+        const uniswapRouterABI = [
+          "function getAmountsOut(uint256 amountIn, address[] memory path) public view returns (uint256[] memory)"
+        ];
+
+        const routerContract = new ethers.Contract(
+          UNISWAP_ROUTER_ADDRESS,
+          uniswapRouterABI,
+          provider
+        );
+
+        // Define the path: SHIB -> WETH -> USDT
+        const WETH_ADDRESS = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+        const USDT_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+
+        const path = [SHIB_ADDRESS, WETH_ADDRESS, USDT_ADDRESS];
+        const amountIn = ethers.utils.parseUnits("1", 18); // 1 SHIB (adjust decimals as needed)
+
+        const amountsOut = await routerContract.getAmountsOut(amountIn, path);
+
+        const shibPriceInUSDT = ethers.utils.formatUnits(amountsOut[2], 6); // USDT has 6 decimals
+        document.getElementById("status").innerText = `SHIB Price: $${shibPriceInUSDT}`;
       } catch (error) {
-        document.getElementById("status").innerText = `Failed to connect: ${error.message}`;
+        document.getElementById("status").innerText = `Error: ${error.message}`;
       }
     }
 
-    // Test RPC connection
-    testRPC();
+    fetchShibPrice();
   </script>
 </body>
 </html>
