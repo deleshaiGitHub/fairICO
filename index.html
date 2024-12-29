@@ -1,42 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SHIB DCA Bot</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-  <link rel="stylesheet" href="style.css"> <!-- Optional for styling -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHIB DCA Bot</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="script.js" defer></script>
 </head>
 <body>
-  <h1>SHIB DCA Bot</h1>
+    <h1>SHIB DCA Bot</h1>
+    <div id="price-display">
+        <h2>SHIB Price Tracker</h2>
+        <p id="shib-price">Loading price...</p>
+    </div>
 
-  <!-- Price Display -->
-  <div id="price-display">
-    <p>Current SHIB Price: <span id="shib-price">Fetching...</span></p>
-  </div>
+    <div id="dca-form">
+        <h2>Set Up Your DCA</h2>
+        <form id="dca-setup-form">
+            <label for="dca-amount">Buy Amount (ETH):</label>
+            <input type="number" id="dca-amount" step="0.01" placeholder="e.g., 0.01" required>
+            <br><br>
+            <label for="dca-threshold">Price Drop Threshold (%):</label>
+            <input type="number" id="dca-threshold" step="0.1" placeholder="e.g., 5" required>
+            <br><br>
+            <label for="dca-interval">Interval (seconds):</label>
+            <input type="number" id="dca-interval" placeholder="e.g., 60" required>
+            <br><br>
+            <button type="submit">Start DCA Bot</button>
+        </form>
+    </div>
 
-  <!-- DCA Bot Configuration -->
-  <div id="dca-config">
-    <h2>DCA Bot Configuration</h2>
-    <label for="buy-amount">Buy Amount (ETH):</label>
-    <input type="number" id="buy-amount" placeholder="e.g., 0.1" step="0.01" />
-
-    <label for="threshold">Price Drop Threshold (%) :</label>
-    <input type="number" id="threshold" placeholder="e.g., 5" step="0.1" />
-
-    <label for="interval">Check Interval (seconds):</label>
-    <input type="number" id="interval" placeholder="e.g., 60" step="1" />
-
-    <button id="start-bot">Start DCA Bot</button>
-    <button id="stop-bot" disabled>Stop DCA Bot</button>
-  </div>
-
-  <!-- Status -->
-  <div id="status">
-    <h3>Status</h3>
-    <p id="bot-status">Bot is not running.</p>
-  </div>
-
-  <script src="script.js"></script>
+    <div id="status">
+        <h3>Bot Status:</h3>
+        <p id="bot-status">Inactive</p>
+    </div>
 </body>
 </html>
