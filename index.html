@@ -10,18 +10,23 @@
   <h1>RPC URL Tester</h1>
   <div id="status">Connecting...</div>
   <script>
-    const RPC_URL = "https://mainnet.infura.io/v3/6a991b4bf4e840c5961cea51c5a9a419";
+    const RPC_URL = "https://eth-mainnet.g.alchemy.com/v2/-b9x-YpIwfCG6EpnctUpMECRvRTKCZ9W";
 
     async function testRPC() {
       try {
+        // Create a provider using the Alchemy URL
         const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+        // Fetch the latest block number
         const blockNumber = await provider.getBlockNumber();
+        // Display the connection status
         document.getElementById("status").innerText = `Connected! Current block number: ${blockNumber}`;
       } catch (error) {
+        // Handle connection errors
         document.getElementById("status").innerText = `Failed to connect: ${error.message}`;
       }
     }
 
+    // Test the RPC URL
     testRPC();
   </script>
 </body>
