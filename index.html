@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RPC URL Tester</title>
-  <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
+  <!-- Load ethers.js with defer to ensure the script loads before execution -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.2.umd.min.js" defer></script>
 </head>
 <body>
   <h1>RPC URL Tester</h1>
@@ -14,15 +15,21 @@
 
     async function testRPC() {
       try {
-        const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
-        const blockNumber = await provider.getBlockNumber();
-        document.getElementById("status").innerText = `Connected! Current block number: ${blockNumber}`;
+        // Wait for ethers.js to be fully loaded
+        if (typeof ethers !== 'undefined') {
+          const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+          const blockNumber = await provider.getBlockNumber();
+          document.getElementById("status").innerText = `Connected! Current block number: ${blockNumber}`;
+        } else {
+          throw new Error("Ethers.js not loaded");
+        }
       } catch (error) {
         document.getElementById("status").innerText = `Failed to connect: ${error.message}`;
       }
     }
 
-    testRPC();
+    // Run the RPC test once the page is fully loaded
+    window.onload = testRPC;
   </script>
 </body>
 </html>
