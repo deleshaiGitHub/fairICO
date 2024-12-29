@@ -57,9 +57,16 @@
         // Web3 setup
         const web3 = new Web3(window.ethereum);
         let userAccount;
-        window.ethereum.request({ method: 'eth_requestAccounts' }).then(accounts => {
-            userAccount = accounts[0];
-        });
+
+        window.ethereum.request({ method: 'eth_requestAccounts' })
+            .then(accounts => {
+                userAccount = accounts[0];
+                console.log('Connected to account:', userAccount);
+            })
+            .catch(error => {
+                console.error('User denied account access', error);
+                alert('Please connect to MetaMask');
+            });
 
         // Contract Addresses
         const DAI_CONTRACT_ADDRESS = "0x6B175474E89094C44Da98b954EedeAC495271d0F";  // DAI contract address
@@ -130,44 +137,79 @@
 
         // Deposit function
         async function deposit() {
-            const daiAmount = document.getElementById("daiAmount").value;
-            const plsAmount = document.getElementById("plsAmount").value;
+            try {
+                const daiAmount = document.getElementById("daiAmount").value;
+                const plsAmount = document.getElementById("plsAmount").value;
 
-            await dcaContract.methods.deposit(daiAmount, plsAmount).send({ from: userAccount });
+                if (!daiAmount || !plsAmount) {
+                    alert("Please enter valid amounts for both DAI and PLS");
+                    return;
+                }
+
+                await dcaContract.methods.deposit(daiAmount, plsAmount).send({ from: userAccount });
+                alert('Deposit successful');
+            } catch (error) {
+                console.error('Deposit failed', error);
+                alert('Transaction failed: ' + error.message);
+            }
         }
 
         // Withdraw function
         async function withdraw() {
-            await dcaContract.methods.withdraw().send({ from: userAccount });
+            try {
+                await dcaContract.methods.withdraw().send({ from: userAccount });
+                alert('Withdrawal successful');
+            } catch (error) {
+                console.error('Withdrawal failed', error);
+                alert('Transaction failed: ' + error.message);
+            }
         }
 
         // Initialize DCA function
         async function initializeDCA() {
-            const baseOrderSize = document.getElementById("baseOrderSize").value;
-            const safetyOrderSize = document.getElementById("safetyOrderSize").value;
-            const priceDeviation = document.getElementById("priceDeviation").value;
-            const maxSafetyOrders = document.getElementById("maxSafetyOrders").value;
-            const safetyOrderVolumeScale = document.getElementById("safetyOrderVolumeScale").value;
-            const safetyOrderStepScale = document.getElementById("safetyOrderStepScale").value;
+            try {
+                const baseOrderSize = document.getElementById("baseOrderSize").value;
+                const safetyOrderSize = document.getElementById("safetyOrderSize").value;
+                const priceDeviation = document.getElementById("priceDeviation").value;
+                const maxSafetyOrders = document.getElementById("maxSafetyOrders").value;
+                const safetyOrderVolumeScale = document.getElementById("safetyOrderVolumeScale").value;
+                const safetyOrderStepScale = document.getElementById("safetyOrderStepScale").value;
 
-            await dcaContract.methods.initializeDCA(
-                baseOrderSize,
-                safetyOrderSize,
-                priceDeviation,
-                maxSafetyOrders,
-                safetyOrderVolumeScale,
-                safetyOrderStepScale
-            ).send({ from: userAccount });
+                await dcaContract.methods.initializeDCA(
+                    baseOrderSize,
+                    safetyOrderSize,
+                    priceDeviation,
+                    maxSafetyOrders,
+                    safetyOrderVolumeScale,
+                    safetyOrderStepScale
+                ).send({ from: userAccount });
+                alert('DCA Initialized');
+            } catch (error) {
+                console.error('Failed to initialize DCA', error);
+                alert('Transaction failed: ' + error.message);
+            }
         }
 
         // Execute DCA function
         async function executeDCA() {
-            await dcaContract.methods.executeDCA().send({ from: userAccount });
+            try {
+                await dcaContract.methods.executeDCA().send({ from: userAccount });
+                alert('DCA Executed');
+            } catch (error) {
+                console.error('Failed to execute DCA', error);
+                alert('Transaction failed: ' + error.message);
+            }
         }
 
         // Stop DCA function
         async function stopDCA() {
-            await dcaContract.methods.stopDCA().send({ from: userAccount });
+            try {
+                await dcaContract.methods.stopDCA().send({ from: userAccount });
+                alert('DCA Stopped');
+            } catch (error) {
+                console.error('Failed to stop DCA', error);
+                alert('Transaction failed: ' + error.message);
+            }
         }
     </script>
 </body>
