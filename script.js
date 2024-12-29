@@ -1,68 +1,83 @@
-const RPC_URL = "https://eth-mainnet.g.alchemy.com/v2/-b9x-YpIwfCG6EpnctUpMECRvRTKCZ9W";
-const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+const provider = new ethers.providers.JsonRpcProvider(
+  "https://eth-mainnet.g.alchemy.com/v2/-b9x-YpIwfCG6EpnctUpMECRvRTKCZ9W"
+);
 
-let botInterval = null;
-let lastBuyPrice = null;
+const SHIB_TOKEN_ADDRESS = "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE";
+const WETH_TOKEN_ADDRESS = "0xC02aaA39b223FE8D0a0E5C4F27eAD9083C756Cc2";
+const UNISWAP_ROUTER_ADDRESS = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
+const UNISWAP_ROUTER_ABI = [
+  {
+    name: "getAmountsOut",
+    type: "function",
+    inputs: [
+      { name: "amountIn", type: "uint256" },
+      { name: "path", type: "address[]" }
+    ],
+    outputs: [{ name: "amounts", type: "uint256[]" }],
+    constant: true,
+    stateMutability: "view"
+  }
+];
 
-// Fetch SHIB price from a Uniswap pair contract
-async function fetchShibPrice() {
+let shibPrice = 0;
+
+// Update SHIB price periodically
+async function fetchSHIBPrice() {
+  const router = new ethers.Contract(UNISWAP_ROUTER_ADDRESS, UNISWAP_ROUTER_ABI, provider);
+  const amountIn = ethers.utils.parseUnits("1", 18); // 1 WETH
+  const path = [WETH_TOKEN_ADDRESS, SHIB_TOKEN_ADDRESS];
+
   try {
-    const shibPrice = await getShibPrice(); // Add Uniswap price logic here
-    document.getElementById("shib-price").innerText = `$${shibPrice}`;
-    return parseFloat(shibPrice);
+    const amountsOut = await router.getAmountsOut(amountIn, path);
+    shibPrice = parseFloat(ethers.utils.formatUnits(amountsOut[1], 18));
+    document.getElementById("shib-price").textContent = `SHIB Price: $${(shibPrice * 1000).toFixed(8)}`;
   } catch (error) {
-    document.getElementById("shib-price").innerText = "Error fetching price";
     console.error("Error fetching SHIB price:", error);
+    document.getElementById("shib-price").textContent = "Failed to fetch price.";
   }
 }
 
-// Start the DCA bot
-function startDcaBot() {
-  const buyAmount = parseFloat(document.getElementById("buy-amount").value);
-  const threshold = parseFloat(document.getElementById("threshold").value) / 100;
-  const interval = parseInt(document.getElementById("interval").value) * 1000;
+// DCA Bot Logic
+let botInterval;
+document.getElementById("dca-setup-form").addEventListener("submit", (event) => {
+  event.preventDefault();
 
-  if (isNaN(buyAmount) || isNaN(threshold) || isNaN(interval)) {
-    alert("Please fill in all fields correctly.");
+  if (botInterval) {
+    clearInterval(botInterval);
+  }
+
+  const dcaAmount = parseFloat(document.getElementById("dca-amount").value);
+  const dcaThreshold = parseFloat(document.getElementById("dca-threshold").value);
+  const dcaInterval = parseInt(document.getElementById("dca-interval").value) * 1000;
+
+  if (isNaN(dcaAmount) || isNaN(dcaThreshold) || isNaN(dcaInterval)) {
+    alert("Please enter valid values.");
     return;
   }
 
-  if (botInterval) clearInterval(botInterval); // Clear previous intervals
+  document.getElementById("bot-status").textContent = "Active";
+
+  let lastPrice = shibPrice;
 
   botInterval = setInterval(async () => {
-    const currentPrice = await fetchShibPrice();
+    await fetchSHIBPrice();
 
-    if (lastBuyPrice === null || currentPrice <= lastBuyPrice * (1 - threshold)) {
-      console.log(`DCA Buy Triggered at Price: $${currentPrice}`);
-      await executeBuy(buyAmount); // Placeholder for actual trade logic
-      lastBuyPrice = currentPrice;
+    if (shibPrice < lastPrice * (1 - dcaThreshold / 100)) {
+      console.log(`Price dropped by ${dcaThreshold}% or more. Executing buy.`);
+      // Execute buy logic
+      executeBuy(dcaAmount);
     }
-  }, interval);
 
-  document.getElementById("bot-status").innerText = "Bot is running.";
-  document.getElementById("start-bot").disabled = true;
-  document.getElementById("stop-bot").disabled = false;
-}
+    lastPrice = shibPrice;
+  }, dcaInterval);
+});
 
-// Stop the DCA bot
-function stopDcaBot() {
-  if (botInterval) clearInterval(botInterval);
-  botInterval = null;
-  document.getElementById("bot-status").innerText = "Bot is not running.";
-  document.getElementById("start-bot").disabled = false;
-  document.getElementById("stop-bot").disabled = true;
-}
-
-// Placeholder for executing the buy
+// Execute a Uniswap buy
 async function executeBuy(amount) {
-  console.log(`Executing buy with amount: ${amount} ETH`);
-  // Add Uniswap Router interaction logic here
+  console.log(`Executing buy for ${amount} ETH worth of SHIB.`);
+  // Here you can implement the logic to interact with Uniswap and perform the buy.
 }
 
-// Attach event listeners
-document.getElementById("start-bot").addEventListener("click", startDcaBot);
-document.getElementById("stop-bot").addEventListener("click", stopDcaBot);
-
-// Fetch price initially and update every 10 seconds
-fetchShibPrice();
-setInterval(fetchShibPrice, 10000);
+// Fetch SHIB price immediately and then periodically
+fetchSHIBPrice();
+setInterval(fetchSHIBPrice, 60000); // Refresh price every 60 seconds
