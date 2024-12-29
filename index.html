@@ -1,27 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Token Monitor</title>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 2rem;
-        }
-        .status {
-            color: green;
-        }
-        .error {
-            color: red;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RPC URL Tester</title>
+  <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
 </head>
 <body>
-    <h1>Token Monitor</h1>
-    <p>Current Token Price: <span id="tokenPrice">Loading...</span></p>
-    <p>Status: <span id="status" class="status">Monitoring...</span></p>
+  <h1>RPC URL Tester</h1>
+  <div id="status">Connecting...</div>
+  <script>
+    const RPC_URL = "https://mainnet.infura.io/v3/acce6b193fb54c2998b1ca60245fcb0e"; // Replace with your actual RPC URL
+
+    async function testRPC() {
+      try {
+        const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+        const blockNumber = await provider.getBlockNumber();
+        document.getElementById("status").innerText = `Connected! Current block number: ${blockNumber}`;
+      } catch (error) {
+        document.getElementById("status").innerText = `Failed to connect: ${error.message}`;
+      }
+    }
+
+    testRPC();
+  </script>
 </body>
-<script src="script.js"></script>
 </html>
