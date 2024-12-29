@@ -4,22 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RPC URL Tester</title>
-  <!-- Load ethers.js with defer to ensure the script loads before execution -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.2.umd.min.js" defer></script>
+  <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
 </head>
 <body>
   <h1>RPC URL Tester</h1>
   <div id="status">Connecting...</div>
   <script>
-    const RPC_URL = "https://mainnet.infura.io/v3/acce6b193fb54c2998b1ca60245fcb0e"; // Replace with your actual RPC URL
+    const RPC_URL = "https://mainnet.infura.io/v3/6a991b4bf4e840c5961cea51c5a9a419";
 
     async function testRPC() {
       try {
-        // Check if ethers.js is loaded
-        if (typeof ethers === 'undefined') {
-          throw new Error("Ethers.js not loaded");
-        }
-
         const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
         const blockNumber = await provider.getBlockNumber();
         document.getElementById("status").innerText = `Connected! Current block number: ${blockNumber}`;
@@ -28,8 +22,7 @@
       }
     }
 
-    // Delay the RPC test to ensure ethers.js is fully loaded
-    setTimeout(testRPC, 1000); // Delay for 1 second
+    testRPC();
   </script>
 </body>
 </html>
