@@ -12,7 +12,7 @@
 
     <script>
         // Set up provider to connect to PulseChain RPC
-        const provider = new ethers.JsonRpcProvider("https://rpc.pulsechain.com");
+        const provider = new ethers.providers.JsonRpcProvider("https://rpc.pulsechain.com");
 
         // Set up the contract address and ABI
         const contractAddress = "0xF055ee36f683Ed9d7749a20a06ceE0b4585f75e5"; // Price Oracle Contract Address
@@ -40,7 +40,7 @@
             try {
                 const price = await contract.getTeddyPrice();
                 const priceInDai = ethers.utils.formatUnits(price, 18); // Convert to human-readable format
-                document.getElementById("price").textContent = priceInDai;
+                document.getElementById("price").textContent = `${priceInDai} DAI`;
             } catch (error) {
                 console.error("Error fetching price:", error);
                 document.getElementById("price").textContent = "Error fetching price.";
