@@ -3,41 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DCA Bot</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
-    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.5.2/dist/web3.min.js"></script>
+    <title>Simple Deposit/Withdraw</title>
 </head>
 <body>
-    <div id="app">
-        <h1>DCA Bot Interface</h1>
-        <button id="connectWallet">Connect Wallet</button>
-        <p id="walletAddress">Wallet Address: Not Connected</p>
-
-        <div id="actions" style="display: none;">
-            <h2>Deposit</h2>
-            <input type="number" id="daiAmount" placeholder="DAI Amount">
-            <input type="number" id="plsAmount" placeholder="PLS Amount">
-            <button id="deposit">Deposit</button>
-
-            <h2>Initialize DCA</h2>
-            <input type="number" id="baseOrderSize" placeholder="Base Order Size">
-            <input type="number" id="safetyOrderSize" placeholder="Safety Order Size">
-            <input type="number" id="priceDeviation" placeholder="Price Deviation (%)">
-            <input type="number" id="maxSafetyOrders" placeholder="Max Safety Orders">
-            <input type="number" id="safetyVolumeScale" placeholder="Safety Order Volume Scale">
-            <input type="number" id="safetyStepScale" placeholder="Safety Order Step Scale">
-            <button id="initializeDCA">Initialize DCA</button>
-
-            <h2>Execute DCA</h2>
-            <button id="executeDCA">Execute</button>
-
-            <h2>Withdraw</h2>
-            <button id="withdraw">Withdraw Funds</button>
-
-            <h2>Stop DCA</h2>
-            <button id="stopDCA">Stop DCA</button>
-        </div>
-    </div>
+    <h1>Simple Contract Interaction</h1>
+    <button id="connectWallet">Connect Wallet</button>
+    <p id="walletAddress">Wallet not connected</p>
+    <hr>
+    <h2>Deposit</h2>
+    <label for="daiAmount">DAI Amount: </label>
+    <input type="number" id="daiAmount" placeholder="Enter DAI amount">
+    <br>
+    <label for="plsAmount">PLS Amount: </label>
+    <input type="number" id="plsAmount" placeholder="Enter PLS amount">
+    <br>
+    <button id="depositButton">Deposit</button>
+    <hr>
+    <h2>Withdraw</h2>
+    <button id="withdrawButton">Withdraw</button>
     <script src="script.js"></script>
 </body>
 </html>
