@@ -1,6 +1,5 @@
-const contractAddress = "0x303CDf9a4E9730d281162e086E2F21C2b3Ab6b7d";
+const contractAddress = "0x303CDf9a4E9730d281162e086E2F21C2b3Ab6b7d"; // Replace with your actual deployed address
 const contractABI = [
-  [
 	{
 		"inputs": [
 			{
@@ -313,7 +312,6 @@ const contractABI = [
 		"stateMutability": "view",
 		"type": "function"
 	}
-]
 ];
 
 let web3;
@@ -336,8 +334,6 @@ async function connectWallet() {
         const accounts = await web3.eth.getAccounts();
         userAddress = accounts[0];
         document.getElementById('walletAddress').innerText = `Wallet Address: ${userAddress}`;
-        document.getElementById('actions').style.display = 'block';
-
         contract = new web3.eth.Contract(contractABI, contractAddress);
     } else {
         alert('Please install MetaMask to use this feature.');
@@ -348,9 +344,14 @@ async function depositFunds() {
     const daiAmount = document.getElementById('daiAmount').value;
     const plsAmount = document.getElementById('plsAmount').value;
 
-    await contract.methods.deposit(web3.utils.toWei(daiAmount, 'ether'), web3.utils.toWei(plsAmount, 'ether'))
-        .send({ from: userAddress });
-    alert('Deposit successful');
+    try {
+        await contract.methods
+            .deposit(web3.utils.toWei(daiAmount, 'ether'), web3.utils.toWei(plsAmount, 'ether'))
+            .send({ from: userAddress });
+        alert('Deposit successful');
+    } catch (error) {
+        console.error('Deposit failed:', error);
+    }
 }
 
 async function initializeDCA() {
@@ -361,29 +362,46 @@ async function initializeDCA() {
     const safetyVolumeScale = document.getElementById('safetyVolumeScale').value;
     const safetyStepScale = document.getElementById('safetyStepScale').value;
 
-    await contract.methods.initializeDCA(
-        web3.utils.toWei(baseOrderSize, 'ether'),
-        web3.utils.toWei(safetyOrderSize, 'ether'),
-        priceDeviation,
-        maxSafetyOrders,
-        safetyVolumeScale,
-        safetyStepScale
-    ).send({ from: userAddress });
-
-    alert('DCA initialized');
+    try {
+        await contract.methods
+            .initializeDCA(
+                web3.utils.toWei(baseOrderSize, 'ether'),
+                web3.utils.toWei(safetyOrderSize, 'ether'),
+                priceDeviation,
+                maxSafetyOrders,
+                safetyVolumeScale,
+                safetyStepScale
+            )
+            .send({ from: userAddress });
+        alert('DCA initialized');
+    } catch (error) {
+        console.error('Initialization failed:', error);
+    }
 }
 
 async function executeDCA() {
-    await contract.methods.executeDCA().send({ from: userAddress });
-    alert('DCA executed');
+    try {
+        await contract.methods.executeDCA().send({ from: userAddress });
+        alert('DCA executed');
+    } catch (error) {
+        console.error('Execution failed:', error);
+    }
 }
 
 async function withdrawFunds() {
-    await contract.methods.withdraw().send({ from: userAddress });
-    alert('Funds withdrawn');
+    try {
+        await contract.methods.withdraw().send({ from: userAddress });
+        alert('Funds withdrawn');
+    } catch (error) {
+        console.error('Withdrawal failed:', error);
+    }
 }
 
 async function stopDCA() {
-    await contract.methods.stopDCA().send({ from: userAddress });
-    alert('DCA stopped');
+    try {
+        await contract.methods.stopDCA().send({ from: userAddress });
+        alert('DCA stopped');
+    } catch (error) {
+        console.error('Stopping failed:', error);
+    }
 }
