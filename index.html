@@ -4,31 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DCA Bot</title>
-    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script src="app.js" defer></script>
 </head>
 <body>
-    <h1>DCA Bot Interface</h1>
+    <h1>DCA Bot</h1>
+    <form id="dcaForm">
+        <label for="daiAmount">DAI Amount:</label>
+        <input type="number" id="daiAmount" required><br>
 
-    <!-- Unified Action Form -->
-    <h2>Start DCA Process</h2>
-    <form id="dca-action-form">
-        <input type="number" id="dai-amount" placeholder="DAI Amount" required>
-        <input type="number" id="pls-amount" placeholder="PLS Amount" required>
-        <input type="number" id="base-order-size" placeholder="Base Order Size" required>
-        <input type="number" id="safety-order-size" placeholder="Safety Order Size" required>
-        <input type="number" id="price-deviation" placeholder="Price Deviation (%)" required>
-        <input type="number" id="max-safety-orders" placeholder="Max Safety Orders" required>
-        <input type="number" id="safety-order-volume-scale" placeholder="Safety Order Volume Scale" required>
-        <input type="number" id="safety-order-step-scale" placeholder="Safety Order Step Scale" required>
+        <label for="plsAmount">PLS Amount:</label>
+        <input type="number" id="plsAmount" required><br>
+
+        <label for="baseOrderSize">Base Order Size:</label>
+        <input type="number" id="baseOrderSize" required><br>
+
+        <label for="safetyOrderSize">Safety Order Size:</label>
+        <input type="number" id="safetyOrderSize" required><br>
+
+        <label for="priceDeviation">Price Deviation (%):</label>
+        <input type="number" id="priceDeviation" required><br>
+
+        <label for="maxSafetyOrders">Max Safety Orders:</label>
+        <input type="number" id="maxSafetyOrders" required><br>
+
+        <label for="volumeScale">Safety Order Volume Scale:</label>
+        <input type="number" id="volumeScale" required><br>
+
+        <label for="stepScale">Safety Order Step Scale:</label>
+        <input type="number" id="stepScale" required><br>
+
         <button type="submit">Start DCA</button>
     </form>
-
-    <!-- Stop DCA -->
-    <h2>Stop DCA</h2>
-    <button id="stop-dca">Stop DCA</button>
-
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
-    <script src="contractABI.js"></script>
-    <script src="app.js"></script>
 </body>
 </html>
