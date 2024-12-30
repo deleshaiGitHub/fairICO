@@ -1,165 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DCA Bot Interface</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.6.1/dist/web3.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contract Interaction</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+  <script defer src="script.js"></script>
 </head>
 <body>
-    <h1>DCA Bot Interface</h1>
-
-    <!-- DCA Action Form -->
-    <h2>Setup DCA</h2>
-    <form id="dcaForm">
-        <h3>Deposit</h3>
-        <label for="daiAmount">DAI Amount: </label>
-        <input type="number" id="daiAmount" placeholder="DAI Amount" value="1000">
-        <br>
-        <label for="plsAmount">PLS Amount: </label>
-        <input type="number" id="plsAmount" placeholder="PLS Amount" value="100">
-        <br><br>
-
-        <h3>DCA Parameters</h3>
-        <label for="baseOrderSize">Base Order Size: </label>
-        <input type="number" id="baseOrderSize" value="10">
-        <br>
-        <label for="safetyOrderSize">Safety Order Size: </label>
-        <input type="number" id="safetyOrderSize" value="5">
-        <br>
-        <label for="priceDeviation">Price Deviation (%): </label>
-        <input type="number" id="priceDeviation" value="1">
-        <br>
-        <label for="maxSafetyOrders">Max Safety Orders: </label>
-        <input type="number" id="maxSafetyOrders" value="5">
-        <br>
-        <label for="safetyOrderVolumeScale">Safety Order Volume Scale: </label>
-        <input type="number" id="safetyOrderVolumeScale" value="1.2">
-        <br>
-        <label for="safetyOrderStepScale">Safety Order Step Scale: </label>
-        <input type="number" id="safetyOrderStepScale" value="1.1">
-        <br><br>
-
-        <button type="button" onclick="setupDCA()">Start DCA</button>
-    </form>
-
-    <!-- Withdraw Section -->
-    <h2>Withdraw</h2>
-    <button onclick="withdraw()">Withdraw</button>
-
-    <!-- Stop DCA Section -->
-    <h2>Stop DCA</h2>
-    <button onclick="stopDCA()">Stop DCA</button>
-
-    <script>
-        // Web3 setup
-        const web3 = new Web3(window.ethereum);
-        let userAccount;
-        window.ethereum.request({ method: 'eth_requestAccounts' }).then(accounts => {
-            userAccount = accounts[0];
-        });
-
-        // Contract Addresses
-        const DAI_CONTRACT_ADDRESS = "0x6B175474E89094C44Da98b954EedeAC495271d0F";  // DAI contract address
-        const PLS_CONTRACT_ADDRESS = "0xA1077a294dDE1B09bB078844df40758a5D0f9a27";  // PLS contract address
-        const CONTRACT_ADDRESS = "0x303CDf9a4E9730d281162e086E2F21C2b3Ab6b7d";  // DCA contract address
-
-        // ABI for interacting with the DCA contract
-        const DCA_ABI = [
-            {
-                "constant": false,
-                "inputs": [
-                    { "name": "daiAmount", "type": "uint256" },
-                    { "name": "plsAmount", "type": "uint256" }
-                ],
-                "name": "deposit",
-                "outputs": [],
-                "payable": false,
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "constant": false,
-                "inputs": [],
-                "name": "withdraw",
-                "outputs": [],
-                "payable": false,
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "constant": false,
-                "inputs": [
-                    { "name": "baseOrderSize", "type": "uint256" },
-                    { "name": "safetyOrderSize", "type": "uint256" },
-                    { "name": "priceDeviation", "type": "uint256" },
-                    { "name": "maxSafetyOrders", "type": "uint256" },
-                    { "name": "safetyOrderVolumeScale", "type": "uint256" },
-                    { "name": "safetyOrderStepScale", "type": "uint256" }
-                ],
-                "name": "initializeDCA",
-                "outputs": [],
-                "payable": false,
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "constant": false,
-                "inputs": [],
-                "name": "executeDCA",
-                "outputs": [],
-                "payable": false,
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "constant": false,
-                "inputs": [],
-                "name": "stopDCA",
-                "outputs": [],
-                "payable": false,
-                "stateMutability": "nonpayable",
-                "type": "function"
-            }
-        ];
-
-        // Creating contract instance
-        const dcaContract = new web3.eth.Contract(DCA_ABI, CONTRACT_ADDRESS);
-
-        // Start DCA function (combines deposit and DCA parameters)
-        async function setupDCA() {
-            const daiAmount = document.getElementById("daiAmount").value;
-            const plsAmount = document.getElementById("plsAmount").value;
-            const baseOrderSize = document.getElementById("baseOrderSize").value;
-            const safetyOrderSize = document.getElementById("safetyOrderSize").value;
-            const priceDeviation = document.getElementById("priceDeviation").value;
-            const maxSafetyOrders = document.getElementById("maxSafetyOrders").value;
-            const safetyOrderVolumeScale = document.getElementById("safetyOrderVolumeScale").value;
-            const safetyOrderStepScale = document.getElementById("safetyOrderStepScale").value;
-
-            // First, deposit the tokens
-            await dcaContract.methods.deposit(daiAmount, plsAmount).send({ from: userAccount });
-
-            // Then initialize DCA
-            await dcaContract.methods.initializeDCA(
-                baseOrderSize,
-                safetyOrderSize,
-                priceDeviation,
-                maxSafetyOrders,
-                safetyOrderVolumeScale,
-                safetyOrderStepScale
-            ).send({ from: userAccount });
-        }
-
-        // Withdraw function
-        async function withdraw() {
-            await dcaContract.methods.withdraw().send({ from: userAccount });
-        }
-
-        // Stop DCA function
-        async function stopDCA() {
-            await dcaContract.methods.stopDCA().send({ from: userAccount });
-        }
-    </script>
+  <h1>Interact with Smart Contract</h1>
+  
+  <!-- Form to Deposit -->
+  <form id="depositForm">
+    <label for="daiAmount">DAI Amount:</label>
+    <input type="number" id="daiAmount" required>
+    
+    <label for="plsAmount">PLS Amount:</label>
+    <input type="number" id="plsAmount" required>
+    
+    <button type="submit">Deposit</button>
+  </form>
+  
+  <div id="output"></div>
 </body>
 </html>
