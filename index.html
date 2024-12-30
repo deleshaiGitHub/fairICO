@@ -3,29 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Contract UI</title>
+    <title>DCABot Interface</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
 </head>
 <body>
-    <h1>Smart Contract Interaction</h1>
-    <div id="content">
+    <h1>DCABot User Interface</h1>
+
+    <section id="deposit">
         <h2>Deposit</h2>
         <label for="daiAmount">DAI Amount:</label>
         <input type="number" id="daiAmount" placeholder="DAI Amount">
         <label for="plsAmount">PLS Amount:</label>
         <input type="number" id="plsAmount" placeholder="PLS Amount">
         <button onclick="deposit()">Deposit</button>
+    </section>
 
-        <h2>DCA Actions</h2>
+    <section id="dca">
+        <h2>DCA Configuration</h2>
         <button onclick="initializeDCA()">Initialize DCA</button>
         <button onclick="executeDCA()">Execute DCA</button>
         <button onclick="stopDCA()">Stop DCA</button>
+    </section>
 
+    <section id="withdraw">
         <h2>Withdraw</h2>
         <button onclick="withdraw()">Withdraw</button>
+    </section>
 
-        <div id="status"></div>
-    </div>
+    <div id="status"></div>
+
     <script src="script.js"></script>
 </body>
 </html>
