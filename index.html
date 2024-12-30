@@ -33,85 +33,72 @@
     <div id="status"></div>
 
     <script>
-        let contract;
+    let contract;
+    let dai;
+    let pls;
 
-        async function getAccounts() {
-            return await web3.eth.getAccounts();
+    async function getAccounts() {
+        return await web3.eth.getAccounts();
+    }
+
+    async function deposit() {
+        const accounts = await getAccounts();
+        const daiAmount = document.getElementById('daiAmount').value;
+        const plsAmount = document.getElementById('plsAmount').value;
+
+        // ABI for ERC20 tokens (DAI and PLS in this case)
+        const erc20ABI = [
+            {
+                "constant": false,
+                "inputs": [
+                    {"name": "spender", "type": "address"},
+                    {"name": "amount", "type": "uint256"}
+                ],
+                "name": "approve",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ];
+
+        // Assuming you know the addresses for DAI and PLS
+        const daiAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F"; // Replace with actual DAI contract address
+        const plsAddress = "0xA1077a294dDE1B09bB078844df40758a5D0f9a27"; // Replace with actual PLS contract address
+
+        // Initialize token contracts
+        dai = new web3.eth.Contract(erc20ABI, daiAddress);
+        pls = new web3.eth.Contract(erc20ABI, plsAddress);
+
+        try {
+            // Approve DAI
+            await dai.methods.approve(contract.options.address, daiAmount).send({ from: accounts[0] });
+            // Approve PLS
+            await pls.methods.approve(contract.options.address, plsAmount).send({ from: accounts[0] });
+
+            // After approval, attempt deposit
+            await contract.methods.deposit(daiAmount, plsAmount).send({ from: accounts[0], gas: 60000 });
+            document.getElementById('status').innerText = "Deposit successful!";
+        } catch (error) {
+            console.error('Deposit error:', error);
+            document.getElementById('status').innerText = "Deposit failed: " + error.message;
         }
+    }
 
-        async function deposit() {
-            const accounts = await getAccounts();
-            const daiAmount = document.getElementById('daiAmount').value;
-            const plsAmount = document.getElementById('plsAmount').value;
-            
+    // ... Other functions here ...
+
+    window.addEventListener('load', async () => {
+        if (window.ethereum) {
             try {
-                await contract.methods.deposit(daiAmount, plsAmount).send({ from: accounts[0] });
-                document.getElementById('status').innerText = "Deposit successful!";
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                window.web3 = new Web3(window.ethereum);
             } catch (error) {
-                console.error('Deposit error:', error);
-                document.getElementById('status').innerText = "Deposit failed: " + error.message;
+                console.error("User denied account access");
             }
+        } else {
+            console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+            // Fallback to local node or another provider if needed
         }
-
-        async function initializeDCA() {
-            const accounts = await getAccounts();
-            // Example values, should be user inputs or from UI elements
-            const params = [1000, 100, 5, 5, 10, 5]; 
-
-            try {
-                await contract.methods.initializeDCA(...params).send({ from: accounts[0] });
-                document.getElementById('status').innerText = "DCA initialized!";
-            } catch (error) {
-                console.error('InitializeDCA error:', error);
-                document.getElementById('status').innerText = "Initialization failed: " + error.message;
-            }
-        }
-
-        async function executeDCA() {
-            const accounts = await getAccounts();
-            try {
-                await contract.methods.executeDCA().send({ from: accounts[0] });
-                document.getElementById('status').innerText = "DCA executed!";
-            } catch (error) {
-                console.error('ExecuteDCA error:', error);
-                document.getElementById('status').innerText = "Execution failed: " + error.message;
-            }
-        }
-
-        async function stopDCA() {
-            const accounts = await getAccounts();
-            try {
-                await contract.methods.stopDCA().send({ from: accounts[0] });
-                document.getElementById('status').innerText = "DCA stopped!";
-            } catch (error) {
-                console.error('StopDCA error:', error);
-                document.getElementById('status').innerText = "Stop failed: " + error.message;
-            }
-        }
-
-        async function withdraw() {
-            const accounts = await getAccounts();
-            try {
-                await contract.methods.withdraw().send({ from: accounts[0] });
-                document.getElementById('status').innerText = "Withdrawal successful!";
-            } catch (error) {
-                console.error('Withdraw error:', error);
-                document.getElementById('status').innerText = "Withdrawal failed: " + error.message;
-            }
-        }
-
-        window.addEventListener('load', async () => {
-            if (window.ethereum) {
-                try {
-                    await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    window.web3 = new Web3(window.ethereum);
-                } catch (error) {
-                    console.error("User denied account access");
-                }
-            } else {
-                console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
-                // Fallback to local node or another provider if needed
-            }
 
             // ABI of your DCABot contract
             const contractABI = [
