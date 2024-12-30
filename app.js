@@ -1,42 +1,23 @@
-// Connecting to the Ethereum provider (Metamask or Web3 provider)
+// Connect to Ethereum provider (e.g., MetaMask)
 const web3 = new Web3(window.ethereum);
 let contract;
 
-const contractAddress = "0x303CDf9a4E9730d281162e086E2F21C2b3Ab6b7d"; // Your contract address
-const abi = contractABI; // Imported ABI from contractABI.js
+const contractAddress = "0x303CDf9a4E9730d281162e086E2F21C2b3Ab6b7d"; // Replace with your contract address
+const abi = contractABI; // Contract ABI from contractABI.js
 
-// Connect to the contract
+// Initialize the contract
 async function initContract() {
     const accounts = await web3.eth.requestAccounts();
     contract = new web3.eth.Contract(abi, contractAddress);
-    const userAccount = accounts[0];
-    console.log("Connected Account: ", userAccount);
+    console.log("Connected Account: ", accounts[0]);
 }
 
-// Handle Deposit
-document.getElementById("deposit-form").addEventListener("submit", async (event) => {
+// Unified action: Deposit funds, initialize DCA, and execute the first order
+document.getElementById("dca-action-form").addEventListener("submit", async (event) => {
     event.preventDefault();
+
     const daiAmount = document.getElementById("dai-amount").value;
     const plsAmount = document.getElementById("pls-amount").value;
-
-    const accounts = await web3.eth.requestAccounts();
-    await contract.methods.deposit(daiAmount, plsAmount).send({ from: accounts[0] });
-    alert("Deposit Successful!");
-});
-
-// Handle Withdraw
-document.getElementById("withdraw-form").addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const accounts = await web3.eth.requestAccounts();
-    await contract.methods.withdraw().send({ from: accounts[0] });
-    alert("Withdraw Successful!");
-});
-
-// Handle DCA Initialization
-document.getElementById("dca-form").addEventListener("submit", async (event) => {
-    event.preventDefault();
-
     const baseOrderSize = document.getElementById("base-order-size").value;
     const safetyOrderSize = document.getElementById("safety-order-size").value;
     const priceDeviation = document.getElementById("price-deviation").value;
@@ -44,34 +25,52 @@ document.getElementById("dca-form").addEventListener("submit", async (event) => 
     const safetyOrderVolumeScale = document.getElementById("safety-order-volume-scale").value;
     const safetyOrderStepScale = document.getElementById("safety-order-step-scale").value;
 
-    const accounts = await web3.eth.requestAccounts();
-    await contract.methods.initializeDCA(
-        baseOrderSize,
-        safetyOrderSize,
-        priceDeviation,
-        maxSafetyOrders,
-        safetyOrderVolumeScale,
-        safetyOrderStepScale
-    ).send({ from: accounts[0] });
+    try {
+        const accounts = await web3.eth.requestAccounts();
+        const userAccount = accounts[0];
 
-    alert("DCA Initialized!");
+        // 1. Deposit Funds
+        console.log("Depositing funds...");
+        await contract.methods.deposit(daiAmount, plsAmount).send({ from: userAccount });
+        console.log("Deposit successful!");
+
+        // 2. Initialize DCA
+        console.log("Initializing DCA...");
+        await contract.methods.initializeDCA(
+            baseOrderSize,
+            safetyOrderSize,
+            priceDeviation,
+            maxSafetyOrders,
+            safetyOrderVolumeScale,
+            safetyOrderStepScale
+        ).send({ from: userAccount });
+        console.log("DCA Initialized!");
+
+        // 3. Execute DCA
+        console.log("Executing first DCA order...");
+        await contract.methods.executeDCA().send({ from: userAccount });
+        console.log("First DCA order executed!");
+        
+        alert("DCA Process Completed!");
+    } catch (error) {
+        console.error("Error during DCA process:", error);
+        alert("An error occurred. Check the console for details.");
+    }
 });
 
-// Handle Stop DCA
+// Stop DCA
 document.getElementById("stop-dca").addEventListener("click", async () => {
-    const accounts = await web3.eth.requestAccounts();
-    await contract.methods.stopDCA().send({ from: accounts[0] });
-    alert("DCA Stopped!");
+    try {
+        const accounts = await web3.eth.requestAccounts();
+        await contract.methods.stopDCA().send({ from: accounts[0] });
+        alert("DCA Stopped!");
+    } catch (error) {
+        console.error("Error stopping DCA:", error);
+        alert("An error occurred while stopping DCA.");
+    }
 });
 
-// Handle Execute DCA
-document.getElementById("execute-dca").addEventListener("click", async () => {
-    const accounts = await web3.eth.requestAccounts();
-    await contract.methods.executeDCA().send({ from: accounts[0] });
-    alert("DCA Executed!");
-});
-
-// Initialize the contract when the page loads
+// Initialize the contract on page load
 window.addEventListener("load", async () => {
     await initContract();
 });
