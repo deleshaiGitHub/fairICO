@@ -1,27 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contract Interaction</title>
-  <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
-  <script defer src="script.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DCA Bot</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Interact with Smart Contract</h1>
-  
-  <!-- Form to Deposit -->
-  <form id="depositForm">
-    <label for="daiAmount">DAI Amount:</label>
-    <input type="number" id="daiAmount" required>
-    
-    <label for="plsAmount">PLS Amount:</label>
-    <input type="number" id="plsAmount" required>
-    
-    <button type="submit">Deposit</button>
-  </form>
-  
-  <div id="output"></div>
+    <h1>DCA Bot Interface</h1>
+
+    <!-- Deposit Form -->
+    <h2>Deposit Funds</h2>
+    <form id="deposit-form">
+        <input type="number" id="dai-amount" placeholder="DAI Amount" required>
+        <input type="number" id="pls-amount" placeholder="PLS Amount" required>
+        <button type="submit">Deposit</button>
+    </form>
+
+    <!-- Withdraw Form -->
+    <h2>Withdraw Funds</h2>
+    <form id="withdraw-form">
+        <button type="submit">Withdraw</button>
+    </form>
+
+    <!-- DCA Form -->
+    <h2>Initialize DCA</h2>
+    <form id="dca-form">
+        <input type="number" id="base-order-size" placeholder="Base Order Size" required>
+        <input type="number" id="safety-order-size" placeholder="Safety Order Size" required>
+        <input type="number" id="price-deviation" placeholder="Price Deviation (%)" required>
+        <input type="number" id="max-safety-orders" placeholder="Max Safety Orders" required>
+        <input type="number" id="safety-order-volume-scale" placeholder="Safety Order Volume Scale" required>
+        <input type="number" id="safety-order-step-scale" placeholder="Safety Order Step Scale" required>
+        <button type="submit">Start DCA</button>
+    </form>
+
+    <!-- DCA Control -->
+    <h2>DCA Control</h2>
+    <button id="stop-dca">Stop DCA</button>
+    <button id="execute-dca">Execute DCA</button>
+
+    <script src="web3.min.js"></script>
+    <script src="contractABI.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
