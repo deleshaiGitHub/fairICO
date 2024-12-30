@@ -1,76 +1,102 @@
-// Connect to Ethereum provider (e.g., MetaMask)
-const web3 = new Web3(window.ethereum);
-let contract;
+// Import necessary libraries
+const Web3 = require('web3');
 
-const contractAddress = "0x303CDf9a4E9730d281162e086E2F21C2b3Ab6b7d"; // Replace with your contract address
-const abi = contractABI; // Contract ABI from contractABI.js
+// Configuration
+const contractAddress = "0x303CDf9a4E9730d281162e086E2F21C2b3Ab6b7d";
+const contractABI = [
+    {
+        "inputs": [
+            { "internalType": "uint256", "name": "daiAmount", "type": "uint256" },
+            { "internalType": "uint256", "name": "plsAmount", "type": "uint256" }
+        ],
+        "name": "deposit",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "executeDCA",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            { "internalType": "address", "name": "_oracleAddress", "type": "address" },
+            { "internalType": "address", "name": "_teddyAddress", "type": "address" },
+            { "internalType": "address", "name": "_daiAddress", "type": "address" },
+            { "internalType": "address", "name": "_plsAddress", "type": "address" }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            { "indexed": true, "internalType": "address", "name": "user", "type": "address" },
+            { "indexed": false, "internalType": "uint256", "name": "daiAmount", "type": "uint256" },
+            { "indexed": false, "internalType": "uint256", "name": "plsAmount", "type": "uint256" }
+        ],
+        "name": "Deposit",
+        "type": "event"
+    },
+    {
+        "inputs": [
+            { "internalType": "uint256", "name": "baseOrderSize", "type": "uint256" },
+            { "internalType": "uint256", "name": "safetyOrderSize", "type": "uint256" },
+            { "internalType": "uint256", "name": "priceDeviation", "type": "uint256" },
+            { "internalType": "uint256", "name": "maxSafetyOrders", "type": "uint256" },
+            { "internalType": "uint256", "name": "safetyOrderVolumeScale", "type": "uint256" },
+            { "internalType": "uint256", "name": "safetyOrderStepScale", "type": "uint256" }
+        ],
+        "name": "initializeDCA",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    // More ABI entries as per your provided list
+];
 
-// Initialize the contract
-async function initContract() {
-    const accounts = await web3.eth.requestAccounts();
-    contract = new web3.eth.Contract(abi, contractAddress);
-    console.log("Connected Account: ", accounts[0]);
+// Web3 instance
+let web3;
+
+// Initialize the DApp
+async function init() {
+    if (window.ethereum) {
+        web3 = new Web3(window.ethereum);
+        await window.ethereum.enable();
+        console.log("Connected to Metamask");
+    } else {
+        console.error("Please install MetaMask to use this DApp.");
+        return;
+    }
+
+    const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+    // Example function call: Deposit
+    const deposit = async (daiAmount, plsAmount) => {
+        const accounts = await web3.eth.getAccounts();
+        await contract.methods.deposit(daiAmount, plsAmount).send({ from: accounts[0] });
+        console.log("Deposit transaction successful");
+    };
+
+    // Example: Call deposit with dummy data
+    document.getElementById("depositButton").addEventListener("click", () => {
+        const dai = document.getElementById("daiAmount").value;
+        const pls = document.getElementById("plsAmount").value;
+        deposit(dai, pls);
+    });
+
+    // Fetch DAI Address (view function example)
+    const fetchDaiAddress = async () => {
+        const daiAddress = await contract.methods.daiAddress().call();
+        console.log("DAI Address:", daiAddress);
+    };
+
+    // Fetch data on load
+    fetchDaiAddress();
 }
 
-// Unified action: Deposit funds, initialize DCA, and execute the first order
-document.getElementById("dca-action-form").addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const daiAmount = document.getElementById("dai-amount").value;
-    const plsAmount = document.getElementById("pls-amount").value;
-    const baseOrderSize = document.getElementById("base-order-size").value;
-    const safetyOrderSize = document.getElementById("safety-order-size").value;
-    const priceDeviation = document.getElementById("price-deviation").value;
-    const maxSafetyOrders = document.getElementById("max-safety-orders").value;
-    const safetyOrderVolumeScale = document.getElementById("safety-order-volume-scale").value;
-    const safetyOrderStepScale = document.getElementById("safety-order-step-scale").value;
-
-    try {
-        const accounts = await web3.eth.requestAccounts();
-        const userAccount = accounts[0];
-
-        // 1. Deposit Funds
-        console.log("Depositing funds...");
-        await contract.methods.deposit(daiAmount, plsAmount).send({ from: userAccount });
-        console.log("Deposit successful!");
-
-        // 2. Initialize DCA
-        console.log("Initializing DCA...");
-        await contract.methods.initializeDCA(
-            baseOrderSize,
-            safetyOrderSize,
-            priceDeviation,
-            maxSafetyOrders,
-            safetyOrderVolumeScale,
-            safetyOrderStepScale
-        ).send({ from: userAccount });
-        console.log("DCA Initialized!");
-
-        // 3. Execute DCA
-        console.log("Executing first DCA order...");
-        await contract.methods.executeDCA().send({ from: userAccount });
-        console.log("First DCA order executed!");
-        
-        alert("DCA Process Completed!");
-    } catch (error) {
-        console.error("Error during DCA process:", error);
-        alert("An error occurred. Check the console for details.");
-    }
-});
-
-// Stop DCA
-document.getElementById("stop-dca").addEventListener("click", async () => {
-    try {
-        const accounts = await web3.eth.requestAccounts();
-        await contract.methods.stopDCA().send({ from: accounts[0] });
-        alert("DCA Stopped!");
-    } catch (error) {
-        console.error("Error stopping DCA:", error);
-        alert("An error occurred while stopping DCA.");
-    }
-});
-
-// Initialize the contract on page load
-window.addEventListener("load", async () => {
-    await initContract();
-});
+// Load DApp
+window.addEventListener("load", init);
