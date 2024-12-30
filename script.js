@@ -10,8 +10,7 @@ if (typeof window.ethereum !== 'undefined' || typeof web3 !== 'undefined') {
 
 // Contract ABI and Address
 const contractABI = [
-  [
-	{
+  {
 		"inputs": [
 			{
 				"internalType": "uint256",
@@ -323,7 +322,6 @@ const contractABI = [
 		"stateMutability": "view",
 		"type": "function"
 	}
-]
 ];
 const contractAddress = "0x303CDf9a4E9730d281162e086E2F21C2b3Ab6b7d";
 
