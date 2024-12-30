@@ -3,25 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.5.2/dist/web3.min.js"></script>
-    <title>Simple Deposit/Withdraw</title>
+    <title>Smart Contract UI</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
 </head>
 <body>
-    <h1>Simple Contract Interaction</h1>
-    <button id="connectWallet">Connect Wallet</button>
-    <p id="walletAddress">Wallet not connected</p>
-    <hr>
-    <h2>Deposit</h2>
-    <label for="daiAmount">DAI Amount: </label>
-    <input type="number" id="daiAmount" placeholder="Enter DAI amount">
-    <br>
-    <label for="plsAmount">PLS Amount: </label>
-    <input type="number" id="plsAmount" placeholder="Enter PLS amount">
-    <br>
-    <button id="depositButton">Deposit</button>
-    <hr>
-    <h2>Withdraw</h2>
-    <button id="withdrawButton">Withdraw</button>
+    <h1>Smart Contract Interaction</h1>
+    <div id="content">
+        <h2>Deposit</h2>
+        <label for="daiAmount">DAI Amount:</label>
+        <input type="number" id="daiAmount" placeholder="DAI Amount">
+        <label for="plsAmount">PLS Amount:</label>
+        <input type="number" id="plsAmount" placeholder="PLS Amount">
+        <button onclick="deposit()">Deposit</button>
+
+        <h2>DCA Actions</h2>
+        <button onclick="initializeDCA()">Initialize DCA</button>
+        <button onclick="executeDCA()">Execute DCA</button>
+        <button onclick="stopDCA()">Stop DCA</button>
+
+        <h2>Withdraw</h2>
+        <button onclick="withdraw()">Withdraw</button>
+
+        <div id="status"></div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
