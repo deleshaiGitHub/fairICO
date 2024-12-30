@@ -4,37 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DCA Bot</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-    <script src="app.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>DCA Bot</h1>
-    <form id="dcaForm">
-        <label for="daiAmount">DAI Amount:</label>
-        <input type="number" id="daiAmount" required><br>
+    <div id="app">
+        <h1>DCA Bot Interface</h1>
+        <button id="connectWallet">Connect Wallet</button>
+        <p id="walletAddress">Wallet Address: Not Connected</p>
 
-        <label for="plsAmount">PLS Amount:</label>
-        <input type="number" id="plsAmount" required><br>
+        <div id="actions" style="display: none;">
+            <h2>Deposit</h2>
+            <input type="number" id="daiAmount" placeholder="DAI Amount">
+            <input type="number" id="plsAmount" placeholder="PLS Amount">
+            <button id="deposit">Deposit</button>
 
-        <label for="baseOrderSize">Base Order Size:</label>
-        <input type="number" id="baseOrderSize" required><br>
+            <h2>Initialize DCA</h2>
+            <input type="number" id="baseOrderSize" placeholder="Base Order Size">
+            <input type="number" id="safetyOrderSize" placeholder="Safety Order Size">
+            <input type="number" id="priceDeviation" placeholder="Price Deviation (%)">
+            <input type="number" id="maxSafetyOrders" placeholder="Max Safety Orders">
+            <input type="number" id="safetyVolumeScale" placeholder="Safety Order Volume Scale">
+            <input type="number" id="safetyStepScale" placeholder="Safety Order Step Scale">
+            <button id="initializeDCA">Initialize DCA</button>
 
-        <label for="safetyOrderSize">Safety Order Size:</label>
-        <input type="number" id="safetyOrderSize" required><br>
+            <h2>Execute DCA</h2>
+            <button id="executeDCA">Execute</button>
 
-        <label for="priceDeviation">Price Deviation (%):</label>
-        <input type="number" id="priceDeviation" required><br>
+            <h2>Withdraw</h2>
+            <button id="withdraw">Withdraw Funds</button>
 
-        <label for="maxSafetyOrders">Max Safety Orders:</label>
-        <input type="number" id="maxSafetyOrders" required><br>
-
-        <label for="volumeScale">Safety Order Volume Scale:</label>
-        <input type="number" id="volumeScale" required><br>
-
-        <label for="stepScale">Safety Order Step Scale:</label>
-        <input type="number" id="stepScale" required><br>
-
-        <button type="submit">Start DCA</button>
-    </form>
+            <h2>Stop DCA</h2>
+            <button id="stopDCA">Stop DCA</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
 </body>
 </html>
