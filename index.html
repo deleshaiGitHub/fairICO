@@ -9,23 +9,11 @@
 <body>
     <h1>DCA Bot Interface</h1>
 
-    <!-- Deposit Form -->
-    <h2>Deposit Funds</h2>
-    <form id="deposit-form">
+    <!-- Unified Action Form -->
+    <h2>Start DCA Process</h2>
+    <form id="dca-action-form">
         <input type="number" id="dai-amount" placeholder="DAI Amount" required>
         <input type="number" id="pls-amount" placeholder="PLS Amount" required>
-        <button type="submit">Deposit</button>
-    </form>
-
-    <!-- Withdraw Form -->
-    <h2>Withdraw Funds</h2>
-    <form id="withdraw-form">
-        <button type="submit">Withdraw</button>
-    </form>
-
-    <!-- DCA Form -->
-    <h2>Initialize DCA</h2>
-    <form id="dca-form">
         <input type="number" id="base-order-size" placeholder="Base Order Size" required>
         <input type="number" id="safety-order-size" placeholder="Safety Order Size" required>
         <input type="number" id="price-deviation" placeholder="Price Deviation (%)" required>
@@ -35,12 +23,11 @@
         <button type="submit">Start DCA</button>
     </form>
 
-    <!-- DCA Control -->
-    <h2>DCA Control</h2>
+    <!-- Stop DCA -->
+    <h2>Stop DCA</h2>
     <button id="stop-dca">Stop DCA</button>
-    <button id="execute-dca">Execute DCA</button>
 
-    <script src="web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
     <script src="contractABI.js"></script>
     <script src="app.js"></script>
 </body>
