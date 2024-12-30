@@ -1,16 +1,20 @@
-// Initialize Web3 if it's available
-if (typeof window.ethereum !== 'undefined' || typeof web3 !== 'undefined') {
-    // Modern dapp browsers or legacy dapp browsers
-    window.web3 = new Web3(ethereum);
-} else {
-    console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
-    // Fallback - use your local node
-    window.web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
-}
+window.addEventListener('load', async () => {
+    if (window.ethereum) {
+        try {
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
+            window.web3 = new Web3(window.ethereum);
+        } catch (error) {
+            console.error("User denied account access");
+        }
+    } else {
+        console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+        // Fallback to local node or another provider if needed
+    }
 
-// Contract ABI and Address
-const contractABI = [
-  {
+    // ABI of your DCABot contract
+    const contractABI = [
+        // Copy and paste your ABI here. Here's a condensed version of what it should look like:
+       {
 		"inputs": [
 			{
 				"internalType": "uint256",
@@ -322,83 +326,75 @@ const contractABI = [
 		"stateMutability": "view",
 		"type": "function"
 	}
-];
-const contractAddress = "0x303CDf9a4E9730d281162e086E2F21C2b3Ab6b7d";
+// ... other function definitions here ...
+    ];
 
-// Create contract instance
-const contract = new web3.eth.Contract(contractABI, contractAddress);
+    const contractAddress = "0x303CDf9a4E9730d281162e086E2F21C2b3Ab6b7d"; // Replace with your contract address
 
-// Function to get user accounts
-async function getAccounts() {
-    return await web3.eth.getAccounts();
-}
+    const contract = new web3.eth.Contract(contractABI, contractAddress);
 
-// Deposit Function
-async function deposit() {
-    const accounts = await getAccounts();
-    const daiAmount = document.getElementById('daiAmount').value;
-    const plsAmount = document.getElementById('plsAmount').value;
-    
-    try {
-        await contract.methods.deposit(daiAmount, plsAmount).send({ from: accounts[0] });
-        document.getElementById('status').innerText = "Deposit successful!";
-    } catch (error) {
-        console.error(error);
-        document.getElementById('status').innerText = "Deposit failed: " + error.message;
+    async function getAccounts() {
+        return await web3.eth.getAccounts();
     }
-}
 
-// Initialize DCA Function
-async function initializeDCA() {
-    const accounts = await getAccounts();
-    // Here, you might want to get these values from user inputs or preset them
-    const params = [1000, 100, 5, 5, 10, 5]; // Example values
-    try {
-        await contract.methods.initializeDCA(...params).send({ from: accounts[0] });
-        document.getElementById('status').innerText = "DCA initialized!";
-    } catch (error) {
-        console.error(error);
-        document.getElementById('status').innerText = "Initialization failed: " + error.message;
+    async function deposit() {
+        const accounts = await getAccounts();
+        const daiAmount = document.getElementById('daiAmount').value;
+        const plsAmount = document.getElementById('plsAmount').value;
+        
+        try {
+            await contract.methods.deposit(daiAmount, plsAmount).send({ from: accounts[0] });
+            document.getElementById('status').innerText = "Deposit successful!";
+        } catch (error) {
+            console.error('Deposit error:', error);
+            document.getElementById('status').innerText = "Deposit failed: " + error.message;
+        }
     }
-}
 
-// Execute DCA Function
-async function executeDCA() {
-    const accounts = await getAccounts();
-    try {
-        await contract.methods.executeDCA().send({ from: accounts[0] });
-        document.getElementById('status').innerText = "DCA executed!";
-    } catch (error) {
-        console.error(error);
-        document.getElementById('status').innerText = "Execution failed: " + error.message;
+    async function initializeDCA() {
+        const accounts = await getAccounts();
+        // Example values, should be user inputs or from UI elements
+        const params = [1000, 100, 5, 5, 10, 5]; 
+
+        try {
+            await contract.methods.initializeDCA(...params).send({ from: accounts[0] });
+            document.getElementById('status').innerText = "DCA initialized!";
+        } catch (error) {
+            console.error('InitializeDCA error:', error);
+            document.getElementById('status').innerText = "Initialization failed: " + error.message;
+        }
     }
-}
 
-// Stop DCA Function
-async function stopDCA() {
-    const accounts = await getAccounts();
-    try {
-        await contract.methods.stopDCA().send({ from: accounts[0] });
-        document.getElementById('status').innerText = "DCA stopped!";
-    } catch (error) {
-        console.error(error);
-        document.getElementById('status').innerText = "Stop failed: " + error.message;
+    async function executeDCA() {
+        const accounts = await getAccounts();
+        try {
+            await contract.methods.executeDCA().send({ from: accounts[0] });
+            document.getElementById('status').innerText = "DCA executed!";
+        } catch (error) {
+            console.error('ExecuteDCA error:', error);
+            document.getElementById('status').innerText = "Execution failed: " + error.message;
+        }
     }
-}
 
-// Withdraw Function
-async function withdraw() {
-    const accounts = await getAccounts();
-    try {
-        await contract.methods.withdraw().send({ from: accounts[0] });
-        document.getElementById('status').innerText = "Withdrawal successful!";
-    } catch (error) {
-        console.error(error);
-        document.getElementById('status').innerText = "Withdrawal failed: " + error.message;
+    async function stopDCA() {
+        const accounts = await getAccounts();
+        try {
+            await contract.methods.stopDCA().send({ from: accounts[0] });
+            document.getElementById('status').innerText = "DCA stopped!";
+        } catch (error) {
+            console.error('StopDCA error:', error);
+            document.getElementById('status').innerText = "Stop failed: " + error.message;
+        }
     }
-}
 
-// Check if MetaMask is installed
-if (window.ethereum) {
-    window.ethereum.enable(); // Request account access if needed
-}
+    async function withdraw() {
+        const accounts = await getAccounts();
+        try {
+            await contract.methods.withdraw().send({ from: accounts[0] });
+            document.getElementById('status').innerText = "Withdrawal successful!";
+        } catch (error) {
+            console.error('Withdraw error:', error);
+            document.getElementById('status').innerText = "Withdrawal failed: " + error.message;
+        }
+    }
+});
