@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hedgehog Token Staking</title>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+    <title>Solana Staking</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/solana-web3.js/1.73.3/solana-web3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor/0.23.0/anchor.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -40,7 +41,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Hedgehog Token Staking</h1>
+        <h1>Solana Staking</h1>
 
         <div class="section" id="landing">
             <h2>Overview</h2>
@@ -52,58 +53,41 @@
         <div class="section" id="stake">
             <h2>Stake Tokens</h2>
             <input type="number" id="stakeAmount" placeholder="Amount to Stake">
-            <button id="approveButton">Approve</button>
-            <button id="stakeButton" disabled>Stake</button>
+            <button id="stakeButton">Stake</button>
         </div>
 
         <div class="section" id="claim">
             <h2>Claim Rewards</h2>
             <p>Rewards Earned: <span id="rewards">0</span></p>
-            <button id="claimButton" disabled>Claim Rewards</button>
+            <button id="claimButton">Claim Rewards</button>
         </div>
 
         <div class="section" id="unstake">
             <h2>Unstake Tokens</h2>
             <p>Staked Amount: <span id="stakedAmount">0</span></p>
-            <p>Unlock Time: <span id="unlockTime">Not yet unlocked</span></p>
-            <button id="unstakeButton" disabled>Unstake</button>
+            <button id="unstakeButton">Unstake</button>
         </div>
     </div>
 
     <script>
-        const stakingAddress = "0x260e6F76475ec2c02e80C44471df36f71fD2a0F4";
-        const tokenAddress = "0x89C4dD9923335f41329C5f6F31aE8111c595Df99";
-        let provider, signer, stakingContract, tokenContract;
+        const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('devnet'));
+        let provider, program, wallet;
 
         async function init() {
-            if (!window.ethereum) {
-                alert("Please install MetaMask!");
+            if (!window.solana) {
+                alert("Please install a Solana wallet like Phantom!");
                 return;
             }
 
-            await window.ethereum.request({ method: 'eth_requestAccounts' }); // Explicitly request MetaMask connection
+            await window.solana.connect();
+            wallet = window.solana;
 
-            provider = new ethers.providers.Web3Provider(window.ethereum);
-            signer = provider.getSigner();
+            provider = new anchor.AnchorProvider(connection, wallet, anchor.AnchorProvider.defaultOptions());
+            anchor.setProvider(provider);
 
-            const stakingAbi = [
-                "function stake(uint256 amount) external",
-                "function claimRewards() external",
-                "function unstake() external",
-                "function calculateReward(address user) public view returns (uint256)",
-                "function stakes(address user) public view returns (uint256 amount, uint256 startTime, uint256 lastClaimTime)"
-            ];
+            const idl = await anchor.Program.fetchIdl("<PROGRAM_ID>", provider);
+            program = new anchor.Program(idl, "<PROGRAM_ID>", provider);
 
-            const tokenAbi = [
-                "function approve(address spender, uint256 amount) public returns (bool)",
-                "function allowance(address owner, address spender) public view returns (uint256)",
-                "function balanceOf(address owner) public view returns (uint256)"
-            ];
-
-            stakingContract = new ethers.Contract(stakingAddress, stakingAbi, signer);
-            tokenContract = new ethers.Contract(tokenAddress, tokenAbi, signer);
-
-            document.getElementById("approveButton").onclick = approveTokens;
             document.getElementById("stakeButton").onclick = stakeTokens;
             document.getElementById("claimButton").onclick = claimRewards;
             document.getElementById("unstakeButton").onclick = unstakeTokens;
@@ -111,7 +95,7 @@
             updateUI();
         }
 
-        async function approveTokens() {
+        async function stakeTokens() {
             try {
                 const amount = document.getElementById("stakeAmount").value;
                 if (!amount || parseFloat(amount) <= 0) {
@@ -119,24 +103,15 @@
                     return;
                 }
 
-                console.log("Requesting token approval for:", amount);
-                const tx = await tokenContract.approve(stakingAddress, ethers.utils.parseUnits(amount, 18));
-                console.log("Approval transaction sent, waiting for confirmation...");
-                await tx.wait();
-                alert("Tokens approved!");
-                document.getElementById("stakeButton").disabled = false;
-            } catch (error) {
-                console.error("Error during token approval:", error);
-                alert("An error occurred during approval. Check the console for details.");
-            }
-        }
+                const tx = await program.rpc.stake(new anchor.BN(amount), {
+                    accounts: {
+                        user: wallet.publicKey,
+                        stakingAccount: "<STAKING_ACCOUNT_ADDRESS>",
+                    },
+                });
 
-        async function stakeTokens() {
-            try {
-                const amount = document.getElementById("stakeAmount").value;
-                const tx = await stakingContract.stake(ethers.utils.parseUnits(amount, 18));
-                await tx.wait();
                 alert("Tokens staked!");
+                console.log("Transaction Signature:", tx);
                 updateUI();
             } catch (error) {
                 console.error("Error during staking:", error);
@@ -146,21 +121,33 @@
 
         async function claimRewards() {
             try {
-                const tx = await stakingContract.claimRewards();
-                await tx.wait();
+                const tx = await program.rpc.claimRewards({
+                    accounts: {
+                        user: wallet.publicKey,
+                        stakingAccount: "<STAKING_ACCOUNT_ADDRESS>",
+                    },
+                });
+
                 alert("Rewards claimed!");
+                console.log("Transaction Signature:", tx);
                 updateUI();
             } catch (error) {
-                console.error("Error during reward claiming:", error);
+                console.error("Error during claiming rewards:", error);
                 alert("An error occurred during claiming rewards. Check the console for details.");
             }
         }
 
         async function unstakeTokens() {
             try {
-                const tx = await stakingContract.unstake();
-                await tx.wait();
+                const tx = await program.rpc.unstake({
+                    accounts: {
+                        user: wallet.publicKey,
+                        stakingAccount: "<STAKING_ACCOUNT_ADDRESS>",
+                    },
+                });
+
                 alert("Tokens unstaked!");
+                console.log("Transaction Signature:", tx);
                 updateUI();
             } catch (error) {
                 console.error("Error during unstaking:", error);
@@ -170,24 +157,12 @@
 
         async function updateUI() {
             try {
-                const [stakedAmount, startTime, lastClaimTime] = await stakingContract.stakes(await signer.getAddress());
-                const rewards = await stakingContract.calculateReward(await signer.getAddress());
-
-                document.getElementById("stakedAmount").innerText = ethers.utils.formatUnits(stakedAmount, 18);
-                document.getElementById("rewards").innerText = ethers.utils.formatUnits(rewards, 18);
-
-                const unlockTime = parseInt(startTime) + 5 * 60; // 5 minutes
-                const currentTime = Math.floor(Date.now() / 1000);
-                if (currentTime >= unlockTime) {
-                    document.getElementById("unlockTime").innerText = "Unlocked";
-                    document.getElementById("unstakeButton").disabled = false;
-                } else {
-                    document.getElementById("unlockTime").innerText = new Date(unlockTime * 1000).toLocaleString();
-                    document.getElementById("unstakeButton").disabled = true;
-                }
+                const stakingAccount = await program.account.stakingAccount.fetch("<STAKING_ACCOUNT_ADDRESS>");
+                document.getElementById("totalStaked").innerText = stakingAccount.totalStaked.toString();
+                document.getElementById("stakedAmount").innerText = stakingAccount.userStake.toString();
+                document.getElementById("rewards").innerText = stakingAccount.rewards.toString();
             } catch (error) {
                 console.error("Error during UI update:", error);
-                alert("An error occurred while updating the UI. Check the console for details.");
             }
         }
 
