@@ -3,170 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solana Staking</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/solana-web3.js/1.73.3/solana-web3.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor/0.23.0/anchor.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f9;
-            color: #333;
-        }
-        .container {
-            width: 80%;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .section {
-            margin-bottom: 20px;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:disabled {
-            background-color: #cccccc;
-        }
-        input {
-            padding: 10px;
-            margin-right: 10px;
-        }
-    </style>
+    <title>Staking Interface</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="staking.js" defer></script>
 </head>
-<body>
-    <div class="container">
-        <h1>Solana Staking</h1>
+<body class="bg-light">
+    <div class="container py-5">
+        <h1 class="text-center">Staking Interface</h1>
+        <div class="row">
+            <!-- Lock Tokens Section -->
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header">Lock Tokens</div>
+                    <div class="card-body">
+                        <form id="lockTokensForm">
+                            <div class="mb-3">
+                                <label for="lockAmount" class="form-label">Token Amount</label>
+                                <input type="number" id="lockAmount" class="form-control" placeholder="Enter amount to lock" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="lockingPeriod" class="form-label">Locking Period (in blocks)</label>
+                                <input type="number" id="lockingPeriod" class="form-control" placeholder="Enter number of blocks" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Lock Tokens</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
 
-        <div class="section" id="landing">
-            <h2>Overview</h2>
-            <p>Total Tokens Staked: <span id="totalStaked">0</span></p>
-            <p>Reward Rate: <span id="rewardRate">10%</span></p>
-            <p>Lock Period: <span id="lockPeriod">5 minutes</span></p>
+            <!-- Unlock Tokens Section -->
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header">Unlock Tokens</div>
+                    <div class="card-body">
+                        <button id="unlockTokensButton" class="btn btn-warning w-100">Unlock Tokens</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="section" id="stake">
-            <h2>Stake Tokens</h2>
-            <input type="number" id="stakeAmount" placeholder="Amount to Stake">
-            <button id="stakeButton">Stake</button>
+        <div class="row">
+            <!-- Get Rewards Section -->
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header">Claim Rewards</div>
+                    <div class="card-body">
+                        <button id="claimRewardsButton" class="btn btn-success w-100">Claim Rewards</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Release Tokens Section -->
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header">Release Tokens</div>
+                    <div class="card-body">
+                        <button id="releaseTokensButton" class="btn btn-secondary w-100">Release Vested Tokens</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="section" id="claim">
-            <h2>Claim Rewards</h2>
-            <p>Rewards Earned: <span id="rewards">0</span></p>
-            <button id="claimButton">Claim Rewards</button>
-        </div>
-
-        <div class="section" id="unstake">
-            <h2>Unstake Tokens</h2>
-            <p>Staked Amount: <span id="stakedAmount">0</span></p>
-            <button id="unstakeButton">Unstake</button>
+        <!-- Status Section -->
+        <div class="card mt-4">
+            <div class="card-header">Staking Status</div>
+            <div class="card-body">
+                <p id="stakingStatus">Loading...</p>
+            </div>
         </div>
     </div>
-
-    <script>
-        const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('devnet'));
-        let provider, program, wallet;
-
-        async function init() {
-            if (!window.solana) {
-                alert("Please install a Solana wallet like Phantom!");
-                return;
-            }
-
-            await window.solana.connect();
-            wallet = window.solana;
-
-            provider = new anchor.AnchorProvider(connection, wallet, anchor.AnchorProvider.defaultOptions());
-            anchor.setProvider(provider);
-
-            const idl = await anchor.Program.fetchIdl("<PROGRAM_ID>", provider);
-            program = new anchor.Program(idl, "<PROGRAM_ID>", provider);
-
-            document.getElementById("stakeButton").onclick = stakeTokens;
-            document.getElementById("claimButton").onclick = claimRewards;
-            document.getElementById("unstakeButton").onclick = unstakeTokens;
-
-            updateUI();
-        }
-
-        async function stakeTokens() {
-            try {
-                const amount = document.getElementById("stakeAmount").value;
-                if (!amount || parseFloat(amount) <= 0) {
-                    alert("Please enter a valid amount to stake.");
-                    return;
-                }
-
-                const tx = await program.rpc.stake(new anchor.BN(amount), {
-                    accounts: {
-                        user: wallet.publicKey,
-                        stakingAccount: "<STAKING_ACCOUNT_ADDRESS>",
-                    },
-                });
-
-                alert("Tokens staked!");
-                console.log("Transaction Signature:", tx);
-                updateUI();
-            } catch (error) {
-                console.error("Error during staking:", error);
-                alert("An error occurred during staking. Check the console for details.");
-            }
-        }
-
-        async function claimRewards() {
-            try {
-                const tx = await program.rpc.claimRewards({
-                    accounts: {
-                        user: wallet.publicKey,
-                        stakingAccount: "<STAKING_ACCOUNT_ADDRESS>",
-                    },
-                });
-
-                alert("Rewards claimed!");
-                console.log("Transaction Signature:", tx);
-                updateUI();
-            } catch (error) {
-                console.error("Error during claiming rewards:", error);
-                alert("An error occurred during claiming rewards. Check the console for details.");
-            }
-        }
-
-        async function unstakeTokens() {
-            try {
-                const tx = await program.rpc.unstake({
-                    accounts: {
-                        user: wallet.publicKey,
-                        stakingAccount: "<STAKING_ACCOUNT_ADDRESS>",
-                    },
-                });
-
-                alert("Tokens unstaked!");
-                console.log("Transaction Signature:", tx);
-                updateUI();
-            } catch (error) {
-                console.error("Error during unstaking:", error);
-                alert("An error occurred during unstaking. Check the console for details.");
-            }
-        }
-
-        async function updateUI() {
-            try {
-                const stakingAccount = await program.account.stakingAccount.fetch("<STAKING_ACCOUNT_ADDRESS>");
-                document.getElementById("totalStaked").innerText = stakingAccount.totalStaked.toString();
-                document.getElementById("stakedAmount").innerText = stakingAccount.userStake.toString();
-                document.getElementById("rewards").innerText = stakingAccount.rewards.toString();
-            } catch (error) {
-                console.error("Error during UI update:", error);
-            }
-        }
-
-        window.onload = init;
-    </script>
 </body>
 </html>
