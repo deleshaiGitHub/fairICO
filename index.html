@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto News Hub</title>
+    <title>Crypto Media Hub</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,6 +17,19 @@
             color: #fff;
             padding: 1rem 0;
             text-align: center;
+        }
+        .hero-section {
+            background: url('https://via.placeholder.com/1500x500') no-repeat center center/cover;
+            color: #fff;
+            text-align: center;
+            padding: 50px 20px;
+        }
+        .hero-section h1 {
+            font-size: 2.5rem;
+            margin: 0 0 10px;
+        }
+        .hero-section p {
+            font-size: 1.2rem;
         }
         .breaking-news {
             background: #ffeb3b;
@@ -65,12 +78,23 @@
         .news-item a:hover {
             text-decoration: underline;
         }
+        footer {
+            background: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <header>
-        <h1>Crypto News Hub</h1>
+        <h1>Crypto Media Hub</h1>
     </header>
+    <section class="hero-section">
+        <h1>Your Gateway to Trusted Crypto News</h1>
+        <p>Breaking news, insights, and updates about the crypto world—all in one place.</p>
+    </section>
     <div class="breaking-news">
         <h2>Breaking News: <a href="#" id="breaking-news-link">Loading...</a></h2>
     </div>
@@ -78,6 +102,9 @@
         <h2>Latest News</h2>
         <p>Loading news...</p>
     </div>
+    <footer>
+        <p>&copy; 2025 Crypto Media Hub. All rights reserved.</p>
+    </footer>
     <script>
         async function fetchCryptoNews() {
             const newsContainer = document.getElementById('news-container');
