@@ -3,85 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Media Hub</title>
+    <title>Fair Launchpad</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            line-height: 1.6;
-            background-color: #f4f4f9;
+            background-color: #f9f9f9;
             margin: 0;
             padding: 0;
         }
         header {
-            background: #333;
-            color: #fff;
-            padding: 1rem 0;
+            background-color: #333;
+            color: white;
+            padding: 20px;
             text-align: center;
-        }
-        .hero-section {
-            background: url('https://via.placeholder.com/1500x500') no-repeat center center/cover;
-            color: #fff;
-            text-align: center;
-            padding: 50px 20px;
-        }
-        .hero-section h1 {
-            font-size: 2.5rem;
-            margin: 0 0 10px;
-        }
-        .hero-section p {
-            font-size: 1.2rem;
-        }
-        .breaking-news {
-            background: #ffeb3b;
-            padding: 10px;
-            margin: 20px auto;
-            max-width: 800px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-        .breaking-news h2 {
-            margin: 0 0 10px;
-            font-size: 1.5rem;
-        }
-        .breaking-news a {
-            color: #333;
-            font-weight: bold;
-            text-decoration: none;
-        }
-        .breaking-news a:hover {
-            text-decoration: underline;
         }
         .container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 20px auto;
-            padding: 10px;
-            background: #fff;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
-        .news-item {
-            padding: 10px 0;
-            border-bottom: 1px solid #ddd;
+        .hero {
+            text-align: center;
+            padding: 50px 20px;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 10px;
         }
-        .news-item:last-child {
-            border-bottom: none;
+        .hero h1 {
+            margin: 0 0 10px;
+            font-size: 2.5rem;
         }
-        .news-item h3 {
-            margin: 0;
+        .hero p {
             font-size: 1.2rem;
         }
-        .news-item a {
-            color: #007BFF;
-            text-decoration: none;
+        .steps {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            gap: 20px;
         }
-        .news-item a:hover {
-            text-decoration: underline;
+        .step {
+            flex: 1;
+            min-width: 300px;
+            padding: 20px;
+            background: #f4f4f9;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .step h3 {
+            margin-bottom: 10px;
+        }
+        .step p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .token-sale {
+            margin-top: 20px;
+        }
+        .token-sale h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .sale-info {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .sale-info div {
+            text-align: center;
+        }
+        .sale-info div h4 {
+            margin: 0;
+            color: #007BFF;
+        }
+        .sale-info div p {
+            margin: 5px 0 0;
+        }
+        .participate {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .participate button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .participate button:hover {
+            background-color: #0056b3;
+        }
+        .post-sale {
+            margin-top: 20px;
+        }
+        .post-sale h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .vesting-schedule {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #ddd;
         }
         footer {
-            background: #333;
-            color: #fff;
             text-align: center;
+            background: #333;
+            color: white;
             padding: 10px 0;
             margin-top: 20px;
         }
@@ -89,70 +126,56 @@
 </head>
 <body>
     <header>
-        <h1>Crypto Media Hub</h1>
+        <h1>Fair Launchpad</h1>
     </header>
-    <section class="hero-section">
-        <h1>Your Gateway to Trusted Crypto News</h1>
-        <p>Breaking news, insights, and updates about the crypto world—all in one place.</p>
-    </section>
-    <div class="breaking-news">
-        <h2>Breaking News: <a href="#" id="breaking-news-link">Loading...</a></h2>
-    </div>
-    <div class="container" id="news-container">
-        <h2>Latest News</h2>
-        <p>Loading news...</p>
+    <div class="container">
+        <!-- Landing Page -->
+        <section class="hero">
+            <h1>Welcome to the Fair Launchpad</h1>
+            <p>Participate in the fairest token launches with full transparency and security.</p>
+            <p><strong>Countdown to Launch:</strong> 02:12:45</p>
+        </section>
+
+        <!-- Token Sale Page -->
+        <section class="token-sale">
+            <h2>Ongoing Token Sale</h2>
+            <div class="sale-info">
+                <div>
+                    <h4>Price</h4>
+                    <p>0.01 ETH per token</p>
+                </div>
+                <div>
+                    <h4>Total Tokens</h4>
+                    <p>5,000,000</p>
+                </div>
+                <div>
+                    <h4>Time Left</h4>
+                    <p>03:12:45</p>
+                </div>
+            </div>
+            <div class="participate">
+                <button onclick="connectWallet()">Connect Wallet to Participate</button>
+            </div>
+        </section>
+
+        <!-- Post-Sale Page -->
+        <section class="post-sale">
+            <h2>Vesting Schedule</h2>
+            <div class="vesting-schedule">
+                <p><strong>Claimable Tokens:</strong> 20% unlocked on purchase.</p>
+                <p><strong>Next Unlock:</strong> 10% in 30 days.</p>
+                <p><strong>Total Unlocked:</strong> 20%</p>
+            </div>
+        </section>
     </div>
     <footer>
-        <p>&copy; 2025 Crypto Media Hub. All rights reserved.</p>
+        <p>&copy; 2025 Fair Launchpad. All rights reserved.</p>
     </footer>
+
     <script>
-        async function fetchCryptoNews() {
-            const newsContainer = document.getElementById('news-container');
-            const breakingNewsLink = document.getElementById('breaking-news-link');
-            newsContainer.innerHTML = '<p>Loading news...</p>';
-
-            const feeds = [
-                "https://www.coindesk.com/arc/outboundfeeds/rss/",
-                "https://cointelegraph.com/rss"
-            ];
-
-            const parser = new DOMParser();
-
-            let breakingNewsSet = false;
-
-            for (const feed of feeds) {
-                try {
-                    const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed)}`);
-                    const data = await response.json();
-
-                    if (data && data.items) {
-                        data.items.forEach((item, index) => {
-                            if (!breakingNewsSet && index === 0) {
-                                breakingNewsLink.textContent = item.title;
-                                breakingNewsLink.href = item.link;
-                                breakingNewsSet = true;
-                            }
-
-                            const newsItem = document.createElement('div');
-                            newsItem.className = 'news-item';
-                            newsItem.innerHTML = `
-                                <h3><a href="${item.link}" target="_blank">${item.title}</a></h3>
-                                <p>${item.pubDate}</p>
-                            `;
-                            newsContainer.appendChild(newsItem);
-                        });
-                    }
-                } catch (error) {
-                    console.error(`Error fetching feed ${feed}:`, error);
-                }
-            }
-
-            if (newsContainer.innerHTML === '<p>Loading news...</p>') {
-                newsContainer.innerHTML = '<p>No news available at this time.</p>';
-            }
+        function connectWallet() {
+            alert('Wallet connection coming soon!');
         }
-
-        fetchCryptoNews();
     </script>
 </body>
 </html>
