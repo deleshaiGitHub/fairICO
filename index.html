@@ -3,231 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fair Launchpad</title>
+    <title>Hedgehog Token Staking</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
             margin: 0;
             padding: 0;
-        }
-        header {
-            background-color: #333;
-            color: white;
-            padding: 20px;
-            text-align: center;
+            background-color: #f4f4f9;
+            color: #333;
         }
         .container {
-            max-width: 1200px;
-            margin: 20px auto;
+            width: 80%;
+            margin: 0 auto;
             padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
-        .hero {
-            text-align: center;
-            padding: 50px 20px;
-            background-color: #007BFF;
-            color: white;
-            border-radius: 10px;
-        }
-        .hero h1 {
-            margin: 0 0 10px;
-            font-size: 2.5rem;
-        }
-        .hero p {
-            font-size: 1.2rem;
-        }
-        .steps {
-            display: flex;
-            flex-wrap: wrap;
-            margin-top: 20px;
-            gap: 20px;
-        }
-        .step {
-            flex: 1;
-            min-width: 300px;
-            padding: 20px;
-            background: #f4f4f9;
-            border-radius: 8px;
-            text-align: center;
-        }
-        .step h3 {
-            margin-bottom: 10px;
-        }
-        .step p {
-            font-size: 0.9rem;
-            color: #666;
-        }
-        .token-sale {
-            margin-top: 20px;
-        }
-        .token-sale h2 {
-            text-align: center;
+        .section {
             margin-bottom: 20px;
         }
-        .sale-info {
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-        }
-        .sale-info div {
-            text-align: center;
-        }
-        .sale-info div h4 {
-            margin: 0;
-            color: #007BFF;
-        }
-        .sale-info div p {
-            margin: 5px 0 0;
-        }
-        .participate {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .participate button {
+        button {
             padding: 10px 20px;
             background-color: #007BFF;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 1rem;
         }
-        .participate button:hover {
-            background-color: #0056b3;
+        button:disabled {
+            background-color: #cccccc;
         }
-        .post-sale {
-            margin-top: 20px;
-        }
-        .post-sale h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .vesting-schedule {
-            margin-top: 10px;
+        input {
             padding: 10px;
-            background: #f9f9f9;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-        }
-        .staking-dashboard {
-            margin-top: 20px;
-            padding: 20px;
-            background: #eef4ff;
-            border-radius: 10px;
-        }
-        .staking-dashboard h2 {
-            text-align: center;
-        }
-        .staking-dashboard .stats {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-        }
-        .staking-dashboard .stats div {
-            text-align: center;
-        }
-        .staking-dashboard .progress {
-            margin-top: 20px;
-        }
-        .progress-bar {
-            background: #007BFF;
-            height: 20px;
-            width: 0;
-            border-radius: 10px;
-            transition: width 0.3s;
-        }
-        footer {
-            text-align: center;
-            background: #333;
-            color: white;
-            padding: 10px 0;
-            margin-top: 20px;
+            margin-right: 10px;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Fair Launchpad</h1>
-    </header>
     <div class="container">
-        <!-- Landing Page -->
-        <section class="hero">
-            <h1>Welcome to the Fair Launchpad</h1>
-            <p>Participate in the fairest token launches with full transparency and security.</p>
-            <p><strong>Countdown to Launch:</strong> 02:12:45</p>
-        </section>
+        <h1>Hedgehog Token Staking</h1>
 
-        <!-- Token Sale Page -->
-        <section class="token-sale">
-            <h2>Ongoing Token Sale</h2>
-            <div class="sale-info">
-                <div>
-                    <h4>Price</h4>
-                    <p>0.01 ETH per token</p>
-                </div>
-                <div>
-                    <h4>Total Tokens</h4>
-                    <p>5,000,000</p>
-                </div>
-                <div>
-                    <h4>Time Left</h4>
-                    <p>03:12:45</p>
-                </div>
-            </div>
-            <div class="participate">
-                <button onclick="connectWallet()">Connect Wallet to Participate</button>
-            </div>
-        </section>
+        <div class="section" id="landing">
+            <h2>Overview</h2>
+            <p>Total Tokens Staked: <span id="totalStaked">0</span></p>
+            <p>Reward Rate: <span id="rewardRate">10%</span></p>
+            <p>Lock Period: <span id="lockPeriod">5 minutes</span></p>
+        </div>
 
-        <!-- Staking Dashboard -->
-        <section class="staking-dashboard">
-            <h2>Staking Dashboard</h2>
-            <div class="stats">
-                <div>
-                    <h4>Total Staked</h4>
-                    <p>800,000 Tokens</p>
-                </div>
-                <div>
-                    <h4>Claimable</h4>
-                    <p>200,000 Tokens</p>
-                </div>
-                <div>
-                    <h4>Next Unlock</h4>
-                    <p>30 Days</p>
-                </div>
-            </div>
-            <div class="progress">
-                <p>Vesting Progress:</p>
-                <div style="background: #ddd; height: 20px; border-radius: 10px;">
-                    <div class="progress-bar" style="width: 40%;"></div>
-                </div>
-            </div>
-        </section>
+        <div class="section" id="stake">
+            <h2>Stake Tokens</h2>
+            <input type="number" id="stakeAmount" placeholder="Amount to Stake">
+            <button id="approveButton">Approve</button>
+            <button id="stakeButton" disabled>Stake</button>
+        </div>
 
-        <!-- Post-Sale Page -->
-        <section class="post-sale">
-            <h2>Vesting Schedule</h2>
-            <div class="vesting-schedule">
-                <p><strong>Claimable Tokens:</strong> 20% unlocked on purchase.</p>
-                <p><strong>Next Unlock:</strong> 10% in 30 days.</p>
-                <p><strong>Total Unlocked:</strong> 20%</p>
-            </div>
-        </section>
+        <div class="section" id="claim">
+            <h2>Claim Rewards</h2>
+            <p>Rewards Earned: <span id="rewards">0</span></p>
+            <button id="claimButton" disabled>Claim Rewards</button>
+        </div>
+
+        <div class="section" id="unstake">
+            <h2>Unstake Tokens</h2>
+            <p>Staked Amount: <span id="stakedAmount">0</span></p>
+            <p>Unlock Time: <span id="unlockTime">Not yet unlocked</span></p>
+            <button id="unstakeButton" disabled>Unstake</button>
+        </div>
     </div>
-    <footer>
-        <p>&copy; 2025 Fair Launchpad. All rights reserved.</p>
-    </footer>
 
     <script>
-        function connectWallet() {
-            alert('Wallet connection coming soon!');
+        const stakingAddress = "<STAKING_CONTRACT_ADDRESS>";
+        const tokenAddress = "<TOKEN_CONTRACT_ADDRESS>";
+        let provider, signer, stakingContract, tokenContract;
+
+        async function init() {
+            if (!window.ethereum) {
+                alert("Please install MetaMask!");
+                return;
+            }
+
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            signer = provider.getSigner();
+
+            const stakingAbi = [
+                "function stake(uint256 amount) external",
+                "function claimRewards() external",
+                "function unstake() external",
+                "function calculateReward(address user) public view returns (uint256)",
+                "function stakes(address user) public view returns (uint256 amount, uint256 startTime, uint256 lastClaimTime)"
+            ];
+
+            const tokenAbi = [
+                "function approve(address spender, uint256 amount) public returns (bool)",
+                "function allowance(address owner, address spender) public view returns (uint256)",
+                "function balanceOf(address owner) public view returns (uint256)"
+            ];
+
+            stakingContract = new ethers.Contract(stakingAddress, stakingAbi, signer);
+            tokenContract = new ethers.Contract(tokenAddress, tokenAbi, signer);
+
+            document.getElementById("approveButton").onclick = approveTokens;
+            document.getElementById("stakeButton").onclick = stakeTokens;
+            document.getElementById("claimButton").onclick = claimRewards;
+            document.getElementById("unstakeButton").onclick = unstakeTokens;
+
+            updateUI();
         }
+
+        async function approveTokens() {
+            const amount = document.getElementById("stakeAmount").value;
+            const tx = await tokenContract.approve(stakingAddress, ethers.utils.parseUnits(amount, 18));
+            await tx.wait();
+            alert("Tokens approved!");
+            document.getElementById("stakeButton").disabled = false;
+        }
+
+        async function stakeTokens() {
+            const amount = document.getElementById("stakeAmount").value;
+            const tx = await stakingContract.stake(ethers.utils.parseUnits(amount, 18));
+            await tx.wait();
+            alert("Tokens staked!");
+            updateUI();
+        }
+
+        async function claimRewards() {
+            const tx = await stakingContract.claimRewards();
+            await tx.wait();
+            alert("Rewards claimed!");
+            updateUI();
+        }
+
+        async function unstakeTokens() {
+            const tx = await stakingContract.unstake();
+            await tx.wait();
+            alert("Tokens unstaked!");
+            updateUI();
+        }
+
+        async function updateUI() {
+            const [stakedAmount, startTime, lastClaimTime] = await stakingContract.stakes(await signer.getAddress());
+            const rewards = await stakingContract.calculateReward(await signer.getAddress());
+
+            document.getElementById("stakedAmount").innerText = ethers.utils.formatUnits(stakedAmount, 18);
+            document.getElementById("rewards").innerText = ethers.utils.formatUnits(rewards, 18);
+
+            const unlockTime = parseInt(startTime) + 5 * 60; // 5 minutes
+            const currentTime = Math.floor(Date.now() / 1000);
+            if (currentTime >= unlockTime) {
+                document.getElementById("unlockTime").innerText = "Unlocked";
+                document.getElementById("unstakeButton").disabled = false;
+            } else {
+                document.getElementById("unlockTime").innerText = new Date(unlockTime * 1000).toLocaleString();
+                document.getElementById("unstakeButton").disabled = true;
+            }
+        }
+
+        window.onload = init;
     </script>
 </body>
 </html>
