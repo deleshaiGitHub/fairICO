@@ -3,423 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DCABot Interface</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <title>Crypto News Feed</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background: #333;
+            color: #fff;
+            padding: 1rem 0;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 10px;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .news-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        .news-item:last-child {
+            border-bottom: none;
+        }
+        .news-item h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+        .news-item a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+        .news-item a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-    <h1>DCABot User Interface</h1>
-
-    <section id="deposit">
-        <h2>Deposit</h2>
-        <label for="daiAmount">DAI Amount:</label>
-        <input type="number" id="daiAmount" placeholder="DAI Amount">
-        <label for="plsAmount">PLS Amount:</label>
-        <input type="number" id="plsAmount" placeholder="PLS Amount">
-        <button onclick="deposit()">Deposit</button>
-    </section>
-
-    <section id="dca">
-        <h2>DCA Configuration</h2>
-        <button onclick="initializeDCA()">Initialize DCA</button>
-        <button onclick="executeDCA()">Execute DCA</button>
-        <button onclick="stopDCA()">Stop DCA</button>
-    </section>
-
-    <section id="withdraw">
-        <h2>Withdraw</h2>
-        <button onclick="withdraw()">Withdraw</button>
-    </section>
-
-    <div id="status"></div>
-
+    <header>
+        <h1>Crypto News Feed</h1>
+    </header>
+    <div class="container" id="news-container">
+        <p>Loading news...</p>
+    </div>
     <script>
-    let contract;
-    let dai;
-    let pls;
+        async function fetchCryptoNews() {
+            const newsContainer = document.getElementById('news-container');
+            newsContainer.innerHTML = '<p>Loading news...</p>';
 
-    async function getAccounts() {
-        return await web3.eth.getAccounts();
-    }
+            const feeds = [
+                "https://www.coindesk.com/arc/outboundfeeds/rss/",
+                "https://cointelegraph.com/rss"
+            ];
 
-    async function deposit() {
-        const accounts = await getAccounts();
-        const daiAmount = document.getElementById('daiAmount').value;
-        const plsAmount = document.getElementById('plsAmount').value;
+            const parser = new DOMParser();
 
-        // ABI for ERC20 tokens (DAI and PLS in this case)
-        const erc20ABI = [
-            {
-                "constant": false,
-                "inputs": [
-                    {"name": "spender", "type": "address"},
-                    {"name": "amount", "type": "uint256"}
-                ],
-                "name": "approve",
-                "outputs": [{"name": "", "type": "bool"}],
-                "payable": false,
-                "stateMutability": "nonpayable",
-                "type": "function"
+            for (const feed of feeds) {
+                try {
+                    const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed)}`);
+                    const data = await response.json();
+
+                    if (data && data.items) {
+                        data.items.forEach(item => {
+                            const newsItem = document.createElement('div');
+                            newsItem.className = 'news-item';
+                            newsItem.innerHTML = `
+                                <h3><a href="${item.link}" target="_blank">${item.title}</a></h3>
+                                <p>${item.pubDate}</p>
+                            `;
+                            newsContainer.appendChild(newsItem);
+                        });
+                    }
+                } catch (error) {
+                    console.error(`Error fetching feed ${feed}:`, error);
+                }
             }
-        ];
 
-        // Assuming you know the addresses for DAI and PLS
-        const daiAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F"; // Replace with actual DAI contract address
-        const plsAddress = "0xA1077a294dDE1B09bB078844df40758a5D0f9a27"; // Replace with actual PLS contract address
-
-        // Initialize token contracts
-        dai = new web3.eth.Contract(erc20ABI, daiAddress);
-        pls = new web3.eth.Contract(erc20ABI, plsAddress);
-
-        try {
-            // Approve DAI
-            await dai.methods.approve(contract.options.address, daiAmount).send({ from: accounts[0] });
-            // Approve PLS
-            await pls.methods.approve(contract.options.address, plsAmount).send({ from: accounts[0] });
-
-            // After approval, attempt deposit
-            await contract.methods.deposit(daiAmount, plsAmount).send({ from: accounts[0], gas: 60000 });
-            document.getElementById('status').innerText = "Deposit successful!";
-        } catch (error) {
-            console.error('Deposit error:', error);
-            document.getElementById('status').innerText = "Deposit failed: " + error.message;
-        }
-    }
-
-    // ... Other functions here ...
-
-    window.addEventListener('load', async () => {
-        if (window.ethereum) {
-            try {
-                await window.ethereum.request({ method: 'eth_requestAccounts' });
-                window.web3 = new Web3(window.ethereum);
-            } catch (error) {
-                console.error("User denied account access");
+            if (newsContainer.innerHTML === '<p>Loading news...</p>') {
+                newsContainer.innerHTML = '<p>No news available at this time.</p>';
             }
-        } else {
-            console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
-            // Fallback to local node or another provider if needed
         }
 
-            // ABI of your DCABot contract
-            const contractABI = [
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "daiAmount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "plsAmount",
-				"type": "uint256"
-			}
-		],
-		"name": "deposit",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "executeDCA",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_oracleAddress",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "_teddyAddress",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "_daiAddress",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "_plsAddress",
-				"type": "address"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "daiAmount",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "plsAmount",
-				"type": "uint256"
-			}
-		],
-		"name": "Deposit",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "baseOrderSize",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "safetyOrderSize",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "priceDeviation",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "maxSafetyOrders",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "safetyOrderVolumeScale",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "safetyOrderStepScale",
-				"type": "uint256"
-			}
-		],
-		"name": "initializeDCA",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "price",
-				"type": "uint256"
-			}
-		],
-		"name": "OrderExecuted",
-		"type": "event"
-	},
-	{
-		"inputs": [],
-		"name": "stopDCA",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "withdraw",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "daiAmount",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "plsAmount",
-				"type": "uint256"
-			}
-		],
-		"name": "Withdraw",
-		"type": "event"
-	},
-	{
-		"inputs": [],
-		"name": "daiAddress",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "oracleAddress",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "owner",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "plsAddress",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "teddyAddress",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "userConfigs",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "baseOrderSize",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "safetyOrderSize",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "priceDeviation",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "maxSafetyOrders",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "safetyOrderVolumeScale",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "safetyOrderStepScale",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "daiBalance",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "plsBalance",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "initialPrice",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "safetyOrdersPlaced",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "active",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-];
-
-            const contractAddress = "0x303CDf9a4E9730d281162e086E2F21C2b3Ab6b7d"; 
-
-            contract = new web3.eth.Contract(contractABI, contractAddress);  // Define contract here
-        });
+        fetchCryptoNews();
     </script>
 </body>
 </html>
