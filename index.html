@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto News Feed</title>
+    <title>Crypto News Hub</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,6 +17,27 @@
             color: #fff;
             padding: 1rem 0;
             text-align: center;
+        }
+        .breaking-news {
+            background: #ffeb3b;
+            padding: 10px;
+            margin: 20px auto;
+            max-width: 800px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .breaking-news h2 {
+            margin: 0 0 10px;
+            font-size: 1.5rem;
+        }
+        .breaking-news a {
+            color: #333;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .breaking-news a:hover {
+            text-decoration: underline;
         }
         .container {
             max-width: 800px;
@@ -48,14 +69,19 @@
 </head>
 <body>
     <header>
-        <h1>Crypto News Feed</h1>
+        <h1>Crypto News Hub</h1>
     </header>
+    <div class="breaking-news">
+        <h2>Breaking News: <a href="#" id="breaking-news-link">Loading...</a></h2>
+    </div>
     <div class="container" id="news-container">
+        <h2>Latest News</h2>
         <p>Loading news...</p>
     </div>
     <script>
         async function fetchCryptoNews() {
             const newsContainer = document.getElementById('news-container');
+            const breakingNewsLink = document.getElementById('breaking-news-link');
             newsContainer.innerHTML = '<p>Loading news...</p>';
 
             const feeds = [
@@ -65,13 +91,21 @@
 
             const parser = new DOMParser();
 
+            let breakingNewsSet = false;
+
             for (const feed of feeds) {
                 try {
                     const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed)}`);
                     const data = await response.json();
 
                     if (data && data.items) {
-                        data.items.forEach(item => {
+                        data.items.forEach((item, index) => {
+                            if (!breakingNewsSet && index === 0) {
+                                breakingNewsLink.textContent = item.title;
+                                breakingNewsLink.href = item.link;
+                                breakingNewsSet = true;
+                            }
+
                             const newsItem = document.createElement('div');
                             newsItem.className = 'news-item';
                             newsItem.innerHTML = `
