@@ -115,6 +115,33 @@
             border-radius: 8px;
             border: 1px solid #ddd;
         }
+        .staking-dashboard {
+            margin-top: 20px;
+            padding: 20px;
+            background: #eef4ff;
+            border-radius: 10px;
+        }
+        .staking-dashboard h2 {
+            text-align: center;
+        }
+        .staking-dashboard .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .staking-dashboard .stats div {
+            text-align: center;
+        }
+        .staking-dashboard .progress {
+            margin-top: 20px;
+        }
+        .progress-bar {
+            background: #007BFF;
+            height: 20px;
+            width: 0;
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
         footer {
             text-align: center;
             background: #333;
@@ -155,6 +182,31 @@
             </div>
             <div class="participate">
                 <button onclick="connectWallet()">Connect Wallet to Participate</button>
+            </div>
+        </section>
+
+        <!-- Staking Dashboard -->
+        <section class="staking-dashboard">
+            <h2>Staking Dashboard</h2>
+            <div class="stats">
+                <div>
+                    <h4>Total Staked</h4>
+                    <p>800,000 Tokens</p>
+                </div>
+                <div>
+                    <h4>Claimable</h4>
+                    <p>200,000 Tokens</p>
+                </div>
+                <div>
+                    <h4>Next Unlock</h4>
+                    <p>30 Days</p>
+                </div>
+            </div>
+            <div class="progress">
+                <p>Vesting Progress:</p>
+                <div style="background: #ddd; height: 20px; border-radius: 10px;">
+                    <div class="progress-bar" style="width: 40%;"></div>
+                </div>
             </div>
         </section>
 
