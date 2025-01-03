@@ -71,8 +71,8 @@
     </div>
 
     <script>
-        const stakingAddress = "<STAKING_CONTRACT_ADDRESS>";
-        const tokenAddress = "<TOKEN_CONTRACT_ADDRESS>";
+        const stakingAddress = "0x260e6F76475ec2c02e80C44471df36f71fD2a0F4";
+        const tokenAddress = "0x89C4dD9923335f41329C5f6F31aE8111c595Df99";
         let provider, signer, stakingContract, tokenContract;
 
         async function init() {
@@ -80,6 +80,8 @@
                 alert("Please install MetaMask!");
                 return;
             }
+
+            await window.ethereum.request({ method: 'eth_requestAccounts' }); // Explicitly request MetaMask connection
 
             provider = new ethers.providers.Web3Provider(window.ethereum);
             signer = provider.getSigner();
@@ -110,50 +112,82 @@
         }
 
         async function approveTokens() {
-            const amount = document.getElementById("stakeAmount").value;
-            const tx = await tokenContract.approve(stakingAddress, ethers.utils.parseUnits(amount, 18));
-            await tx.wait();
-            alert("Tokens approved!");
-            document.getElementById("stakeButton").disabled = false;
+            try {
+                const amount = document.getElementById("stakeAmount").value;
+                if (!amount || parseFloat(amount) <= 0) {
+                    alert("Please enter a valid amount to stake.");
+                    return;
+                }
+
+                console.log("Requesting token approval for:", amount);
+                const tx = await tokenContract.approve(stakingAddress, ethers.utils.parseUnits(amount, 18));
+                console.log("Approval transaction sent, waiting for confirmation...");
+                await tx.wait();
+                alert("Tokens approved!");
+                document.getElementById("stakeButton").disabled = false;
+            } catch (error) {
+                console.error("Error during token approval:", error);
+                alert("An error occurred during approval. Check the console for details.");
+            }
         }
 
         async function stakeTokens() {
-            const amount = document.getElementById("stakeAmount").value;
-            const tx = await stakingContract.stake(ethers.utils.parseUnits(amount, 18));
-            await tx.wait();
-            alert("Tokens staked!");
-            updateUI();
+            try {
+                const amount = document.getElementById("stakeAmount").value;
+                const tx = await stakingContract.stake(ethers.utils.parseUnits(amount, 18));
+                await tx.wait();
+                alert("Tokens staked!");
+                updateUI();
+            } catch (error) {
+                console.error("Error during staking:", error);
+                alert("An error occurred during staking. Check the console for details.");
+            }
         }
 
         async function claimRewards() {
-            const tx = await stakingContract.claimRewards();
-            await tx.wait();
-            alert("Rewards claimed!");
-            updateUI();
+            try {
+                const tx = await stakingContract.claimRewards();
+                await tx.wait();
+                alert("Rewards claimed!");
+                updateUI();
+            } catch (error) {
+                console.error("Error during reward claiming:", error);
+                alert("An error occurred during claiming rewards. Check the console for details.");
+            }
         }
 
         async function unstakeTokens() {
-            const tx = await stakingContract.unstake();
-            await tx.wait();
-            alert("Tokens unstaked!");
-            updateUI();
+            try {
+                const tx = await stakingContract.unstake();
+                await tx.wait();
+                alert("Tokens unstaked!");
+                updateUI();
+            } catch (error) {
+                console.error("Error during unstaking:", error);
+                alert("An error occurred during unstaking. Check the console for details.");
+            }
         }
 
         async function updateUI() {
-            const [stakedAmount, startTime, lastClaimTime] = await stakingContract.stakes(await signer.getAddress());
-            const rewards = await stakingContract.calculateReward(await signer.getAddress());
+            try {
+                const [stakedAmount, startTime, lastClaimTime] = await stakingContract.stakes(await signer.getAddress());
+                const rewards = await stakingContract.calculateReward(await signer.getAddress());
 
-            document.getElementById("stakedAmount").innerText = ethers.utils.formatUnits(stakedAmount, 18);
-            document.getElementById("rewards").innerText = ethers.utils.formatUnits(rewards, 18);
+                document.getElementById("stakedAmount").innerText = ethers.utils.formatUnits(stakedAmount, 18);
+                document.getElementById("rewards").innerText = ethers.utils.formatUnits(rewards, 18);
 
-            const unlockTime = parseInt(startTime) + 5 * 60; // 5 minutes
-            const currentTime = Math.floor(Date.now() / 1000);
-            if (currentTime >= unlockTime) {
-                document.getElementById("unlockTime").innerText = "Unlocked";
-                document.getElementById("unstakeButton").disabled = false;
-            } else {
-                document.getElementById("unlockTime").innerText = new Date(unlockTime * 1000).toLocaleString();
-                document.getElementById("unstakeButton").disabled = true;
+                const unlockTime = parseInt(startTime) + 5 * 60; // 5 minutes
+                const currentTime = Math.floor(Date.now() / 1000);
+                if (currentTime >= unlockTime) {
+                    document.getElementById("unlockTime").innerText = "Unlocked";
+                    document.getElementById("unstakeButton").disabled = false;
+                } else {
+                    document.getElementById("unlockTime").innerText = new Date(unlockTime * 1000).toLocaleString();
+                    document.getElementById("unstakeButton").disabled = true;
+                }
+            } catch (error) {
+                console.error("Error during UI update:", error);
+                alert("An error occurred while updating the UI. Check the console for details.");
             }
         }
 
