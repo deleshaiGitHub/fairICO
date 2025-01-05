@@ -3,75 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staking Interface</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    <script src="staking.js" defer></script>
+    <title>Staking DApp</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        button {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
-<body class="bg-light">
-    <div class="container py-5">
-        <h1 class="text-center">Staking Interface</h1>
-        <div class="row">
-            <!-- Lock Tokens Section -->
-            <div class="col-md-6">
-                <div class="card mb-3">
-                    <div class="card-header">Lock Tokens</div>
-                    <div class="card-body">
-                        <form id="lockTokensForm">
-                            <div class="mb-3">
-                                <label for="lockAmount" class="form-label">Token Amount</label>
-                                <input type="number" id="lockAmount" class="form-control" placeholder="Enter amount to lock" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="lockingPeriod" class="form-label">Locking Period (in blocks)</label>
-                                <input type="number" id="lockingPeriod" class="form-control" placeholder="Enter number of blocks" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Lock Tokens</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
+<body>
+    <div class="container">
+        <h2>Staking DApp</h2>
 
-            <!-- Unlock Tokens Section -->
-            <div class="col-md-6">
-                <div class="card mb-3">
-                    <div class="card-header">Unlock Tokens</div>
-                    <div class="card-body">
-                        <button id="unlockTokensButton" class="btn btn-warning w-100">Unlock Tokens</button>
-                    </div>
-                </div>
-            </div>
+        <div id="connect-wallet">
+            <button onclick="connectWallet()">Connect Wallet</button>
         </div>
 
-        <div class="row">
-            <!-- Get Rewards Section -->
-            <div class="col-md-6">
-                <div class="card mb-3">
-                    <div class="card-header">Claim Rewards</div>
-                    <div class="card-body">
-                        <button id="claimRewardsButton" class="btn btn-success w-100">Claim Rewards</button>
-                    </div>
-                </div>
-            </div>
+        <div id="contract-actions" style="display: none;">
+            <h3>Stake Tokens</h3>
+            <input type="number" id="stakeAmount" placeholder="Amount to stake">
+            <input type="number" id="lockDuration" placeholder="Lock duration (seconds)">
+            <button onclick="stakeTokens()">Stake</button>
 
-            <!-- Release Tokens Section -->
-            <div class="col-md-6">
-                <div class="card mb-3">
-                    <div class="card-header">Release Tokens</div>
-                    <div class="card-body">
-                        <button id="releaseTokensButton" class="btn btn-secondary w-100">Release Vested Tokens</button>
-                    </div>
-                </div>
-            </div>
+            <h3>Claim Rewards</h3>
+            <button onclick="claimRewards()">Claim</button>
+
+            <h3>Withdraw Staked Tokens</h3>
+            <button onclick="withdrawTokens()">Withdraw</button>
+
+            <h3>Emergency Withdraw</h3>
+            <button onclick="emergencyWithdraw()">Emergency Withdraw</button>
         </div>
 
-        <!-- Status Section -->
-        <div class="card mt-4">
-            <div class="card-header">Staking Status</div>
-            <div class="card-body">
-                <p id="stakingStatus">Loading...</p>
-            </div>
-        </div>
+        <p id="status"></p>
     </div>
+
+    <script>
+        let web3;
+        let contract;
+        const contractAddress = "<YOUR_CONTRACT_ADDRESS>";
+        const contractABI = <YOUR_CONTRACT_ABI>;
+
+        async function connectWallet() {
+            if (window.ethereum) {
+                try {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    web3 = new Web3(window.ethereum);
+                    document.getElementById('connect-wallet').style.display = 'none';
+                    document.getElementById('contract-actions').style.display = 'block';
+                    contract = new web3.eth.Contract(contractABI, contractAddress);
+                    updateStatus("Wallet connected successfully!");
+                } catch (error) {
+                    updateStatus(`Error connecting wallet: ${error.message}`);
+                }
+            } else {
+                updateStatus("MetaMask is not installed.");
+            }
+        }
+
+        async function stakeTokens() {
+            const accounts = await web3.eth.getAccounts();
+            const amount = document.getElementById('stakeAmount').value;
+            const lockDuration = document.getElementById('lockDuration').value;
+
+            try {
+                await contract.methods.stake(amount, lockDuration).send({ from: accounts[0] });
+                updateStatus("Tokens staked successfully!");
+            } catch (error) {
+                updateStatus(`Error staking tokens: ${error.message}`);
+            }
+        }
+
+        async function claimRewards() {
+            const accounts = await web3.eth.getAccounts();
+
+            try {
+                await contract.methods.claimRewards().send({ from: accounts[0] });
+                updateStatus("Rewards claimed successfully!");
+            } catch (error) {
+                updateStatus(`Error claiming rewards: ${error.message}`);
+            }
+        }
+
+        async function withdrawTokens() {
+            const accounts = await web3.eth.getAccounts();
+
+            try {
+                await contract.methods.withdraw().send({ from: accounts[0] });
+                updateStatus("Tokens withdrawn successfully!");
+            } catch (error) {
+                updateStatus(`Error withdrawing tokens: ${error.message}`);
+            }
+        }
+
+        async function emergencyWithdraw() {
+            const accounts = await web3.eth.getAccounts();
+
+            try {
+                await contract.methods.emergencyWithdraw().send({ from: accounts[0] });
+                updateStatus("Emergency withdrawal successful!");
+            } catch (error) {
+                updateStatus(`Error during emergency withdrawal: ${error.message}`);
+            }
+        }
+
+        function updateStatus(message) {
+            document.getElementById('status').innerText = message;
+        }
+    </script>
 </body>
 </html>
