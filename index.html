@@ -1,471 +1,127 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ethereum Staking UI</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-</head>
-<body>
-    <h1>Staking Contract Interaction</h1>
-    
-    <button id="connectWallet">Connect Wallet</button>
-    
-    <div id="stakeAmount">
-        <input type="number" id="amount" placeholder="Amount to stake">
-        <input type="number" id="lockDuration" placeholder="Lock Duration (seconds)">
-        <button onclick="stake()">Stake</button>
-    </div>
+// Frontend for Staking Contract
 
-    <div id="actions">
-        <button onclick="withdraw()">Withdraw</button>
-        <button onclick="claimRewards()">Claim Rewards</button>
-        <button onclick="exit()">Exit</button>
-    </div>
+import React, { useState, useEffect } from 'react';
+import { ethers } from 'ethers';
 
-    <div id="status"></div>
+// Replace these with your actual contract addresses and ABIs
+const TOKEN_ADDRESS = 'YOUR_TOKEN_ADDRESS';
+const STAKING_ADDRESS = 'YOUR_STAKING_CONTRACT_ADDRESS';
+const TOKEN_ABI = [/* Paste your token ABI here */];
+const STAKING_ABI = [/* Paste your staking contract ABI here */];
 
-    <script>
-        let web3;
-        let stakingContract;
+const App = () => {
+    const [provider, setProvider] = useState(null);
+    const [signer, setSigner] = useState(null);
+    const [address, setAddress] = useState('');
+    const [tokenBalance, setTokenBalance] = useState('0');
+    const [allowance, setAllowance] = useState('0');
+    const [stakeAmount, setStakeAmount] = useState('');
+    const [lockDuration, setLockDuration] = useState('');
 
-        // Initialize web3 and contract instance
-        async function init() {
-            if (window.ethereum) {
-                web3 = new Web3(window.ethereum);
-                await window.ethereum.enable();
-                const contractAddress = '0xd9145CCE52D386f254917e481eB44e9943F39138';
-                const abi = [
-	{
-		"inputs": [],
-		"name": "claimRewards",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "depositRewards",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "exit",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "renounceOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_stakingToken",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "_rewardToken",
-				"type": "address"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			}
-		],
-		"name": "OwnableInvalidOwner",
-		"type": "error"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "account",
-				"type": "address"
-			}
-		],
-		"name": "OwnableUnauthorizedAccount",
-		"type": "error"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "previousOwner",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "OwnershipTransferred",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "RewardDeposited",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "reward",
-				"type": "uint256"
-			}
-		],
-		"name": "RewardPaid",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "lockDuration",
-				"type": "uint256"
-			}
-		],
-		"name": "stake",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "lockUntil",
-				"type": "uint256"
-			}
-		],
-		"name": "Staked",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "transferOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "withdraw",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "Withdrawn",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "account",
-				"type": "address"
-			}
-		],
-		"name": "earned",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "lastUpdateTime",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "owner",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "rewardPerToken",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "rewardPerTokenStored",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "rewardRatePerSecond",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "rewardToken",
-		"outputs": [
-			{
-				"internalType": "contract IERC20",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "stakes",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "rewards",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "lockUntil",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "rewardPerTokenPaid",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "stakingToken",
-		"outputs": [
-			{
-				"internalType": "contract IERC20",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "totalRewardPoints",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "totalStaked",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-] // Your ABI here
-                stakingContract = new web3.eth.Contract(abi, contractAddress);
-            } else {
-                document.getElementById('status').innerText = 'Please install MetaMask!';
-            }
+    useEffect(() => {
+        if (window.ethereum) {
+            const initProvider = new ethers.providers.Web3Provider(window.ethereum);
+            setProvider(initProvider);
+        } else {
+            alert('Please install MetaMask to use this application.');
         }
+    }, []);
 
-        // Connect wallet
-        document.getElementById('connectWallet').addEventListener('click', init);
+    const connectWallet = async () => {
+        try {
+            await provider.send('eth_requestAccounts', []);
+            const signerInstance = provider.getSigner();
+            setSigner(signerInstance);
 
-        // Stake function
-        function stake() {
-            const amount = document.getElementById('amount').value;
-            const lockDuration = document.getElementById('lockDuration').value;
-            stakingContract.methods.stake(amount, lockDuration).send({ from: web3.eth.defaultAccount })
-                .on('transactionHash', function(hash) {
-                    document.getElementById('status').innerText = `Transaction sent: ${hash}`;
-                })
-                .on('confirmation', function(confirmationNumber, receipt){
-                    document.getElementById('status').innerText = `Stake confirmed with ${confirmationNumber} confirmations.`;
-                });
+            const userAddress = await signerInstance.getAddress();
+            setAddress(userAddress);
+
+            await fetchBalancesAndAllowance(userAddress);
+        } catch (error) {
+            console.error('Error connecting wallet:', error);
         }
+    };
 
-        // Withdraw function
-        function withdraw() {
-            stakingContract.methods.withdraw().send({ from: web3.eth.defaultAccount })
-                .on('transactionHash', function(hash) {
-                    document.getElementById('status').innerText = `Withdraw transaction sent: ${hash}`;
-                })
-                .on('confirmation', function(confirmationNumber, receipt){
-                    document.getElementById('status').innerText = `Withdraw confirmed with ${confirmationNumber} confirmations.`;
-                });
-        }
+    const fetchBalancesAndAllowance = async (userAddress) => {
+        try {
+            const tokenContract = new ethers.Contract(TOKEN_ADDRESS, TOKEN_ABI, provider);
+            const stakingContract = new ethers.Contract(STAKING_ADDRESS, STAKING_ABI, provider);
 
-        // Claim Rewards function
-        function claimRewards() {
-            stakingContract.methods.claimRewards().send({ from: web3.eth.defaultAccount })
-                .on('transactionHash', function(hash) {
-                    document.getElementById('status').innerText = `Claim Rewards transaction sent: ${hash}`;
-                })
-                .on('confirmation', function(confirmationNumber, receipt){
-                    document.getElementById('status').innerText = `Rewards claimed with ${confirmationNumber} confirmations.`;
-                });
-        }
+            const balance = await tokenContract.balanceOf(userAddress);
+            const userAllowance = await tokenContract.allowance(userAddress, STAKING_ADDRESS);
 
-        // Exit function
-        function exit() {
-            stakingContract.methods.exit().send({ from: web3.eth.defaultAccount })
-                .on('transactionHash', function(hash) {
-                    document.getElementById('status').innerText = `Exit transaction sent: ${hash}`;
-                })
-                .on('confirmation', function(confirmationNumber, receipt){
-                    document.getElementById('status').innerText = `Exit confirmed with ${confirmationNumber} confirmations.`;
-                });
+            setTokenBalance(ethers.utils.formatUnits(balance, 18));
+            setAllowance(ethers.utils.formatUnits(userAllowance, 18));
+        } catch (error) {
+            console.error('Error fetching balances and allowance:', error);
         }
-    </script>
-</body>
-</html>
+    };
+
+    const approveTokens = async () => {
+        try {
+            const tokenContract = new ethers.Contract(TOKEN_ADDRESS, TOKEN_ABI, signer);
+            const tx = await tokenContract.approve(STAKING_ADDRESS, ethers.utils.parseUnits('1000000', 18)); // Approve a large amount
+            await tx.wait();
+            alert('Approval successful!');
+            await fetchBalancesAndAllowance(address);
+        } catch (error) {
+            console.error('Error approving tokens:', error);
+        }
+    };
+
+    const stakeTokens = async () => {
+        try {
+            const stakingContract = new ethers.Contract(STAKING_ADDRESS, STAKING_ABI, signer);
+            const tx = await stakingContract.stake(
+                ethers.utils.parseUnits(stakeAmount, 18),
+                lockDuration
+            );
+            await tx.wait();
+            alert('Tokens staked successfully!');
+            setStakeAmount('');
+            setLockDuration('');
+            await fetchBalancesAndAllowance(address);
+        } catch (error) {
+            console.error('Error staking tokens:', error);
+        }
+    };
+
+    return (
+        <div style={{ padding: '20px', fontFamily: 'Arial' }}>
+            <h1>Staking DApp</h1>
+            {!address ? (
+                <button onClick={connectWallet}>Connect Wallet</button>
+            ) : (
+                <div>
+                    <p>Connected Wallet: {address}</p>
+                    <p>Token Balance: {tokenBalance}</p>
+                    <p>Allowance: {allowance}</p>
+
+                    <div>
+                        <h3>Approve Tokens</h3>
+                        <button onClick={approveTokens}>Approve</button>
+                    </div>
+
+                    <div>
+                        <h3>Stake Tokens</h3>
+                        <input
+                            type="number"
+                            placeholder="Amount to Stake"
+                            value={stakeAmount}
+                            onChange={(e) => setStakeAmount(e.target.value)}
+                        />
+                        <input
+                            type="number"
+                            placeholder="Lock Duration (seconds)"
+                            value={lockDuration}
+                            onChange={(e) => setLockDuration(e.target.value)}
+                        />
+                        <button onClick={stakeTokens}>Stake</button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default App;
