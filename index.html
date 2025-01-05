@@ -3,58 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staking Contract Interaction</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
-        }
-    </style>
+    <title>Ethereum Staking UI</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
 </head>
 <body>
-
     <h1>Staking Contract Interaction</h1>
-    <p>Enter amount and lock duration to stake:</p>
-
-    <button id="connect-wallet">Connect Wallet</button>
-    <div id="wallet-info" style="display: none;">
-        <form id="stake-form">
-            <div>
-                <label for="amount">Amount (in tokens):</label>
-                <input type="number" id="amount" required>
-            </div>
-            <div>
-                <label for="lock-duration">Lock Duration (in seconds):</label>
-                <input type="number" id="lock-duration" required>
-            </div>
-            <button type="submit">Stake</button>
-        </form>
+    
+    <button id="connectWallet">Connect Wallet</button>
+    
+    <div id="stakeAmount">
+        <input type="number" id="amount" placeholder="Amount to stake">
+        <input type="number" id="lockDuration" placeholder="Lock Duration (seconds)">
+        <button onclick="stake()">Stake</button>
     </div>
 
-    <p id="status"></p>
+    <div id="actions">
+        <button onclick="withdraw()">Withdraw</button>
+        <button onclick="claimRewards()">Claim Rewards</button>
+        <button onclick="exit()">Exit</button>
+    </div>
+
+    <div id="status"></div>
 
     <script>
-        let provider, signer, stakingContract;
+        let web3;
+        let stakingContract;
 
-        async function connectWallet() {
-            if (window.ethereum) {
-                provider = new ethers.providers.Web3Provider(window.ethereum);
-                await provider.send("eth_requestAccounts", []);
-                signer = provider.getSigner();
-                document.getElementById("wallet-info").style.display = "block";
-                document.getElementById("connect-wallet").style.display = "none";
-                document.getElementById("status").innerText = "Wallet connected!";
-            } else {
-                document.getElementById("status").innerText = "Please install MetaMask!";
-            }
-        }
-
+        // Initialize web3 and contract instance
         async function init() {
-            stakingContract = new ethers.Contract(
-                "YOUR_CONTRACT_ADDRESS_HERE",  0xd9145CCE52D386f254917e481eB44e9943F39138// Replace with your contract address
-                YOUR_CONTRACT_ABI,  [
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+                await window.ethereum.enable();
+                const contractAddress = '0xd9145CCE52D386f254917e481eB44e9943F39138';
+                const abi = [
 	{
 		"inputs": [],
 		"name": "claimRewards",
@@ -430,33 +411,61 @@
 		"stateMutability": "view",
 		"type": "function"
 	}
-]           // Replace with your contract ABI
-                signer
-            );
-
-            document.getElementById("stake-form").addEventListener("submit", stake);
-        }
-
-        async function stake(event) {
-            event.preventDefault();
-
-            const amount = ethers.utils.parseUnits(document.getElementById("amount").value, 18); // Convert amount to wei
-            const lockDuration = parseInt(document.getElementById("lock-duration").value, 10);
-            
-            try {
-                const tx = await stakingContract.stake(amount, lockDuration, { gasLimit: 600000 });
-                document.getElementById("status").innerText = "Transaction sent! Waiting for confirmation...";
-                await tx.wait();
-                document.getElementById("status").innerText = "Staking successful!";
-            } catch (error) {
-                document.getElementById("status").innerText = `Error: ${error.message}`;
+] // Your ABI here
+                stakingContract = new web3.eth.Contract(abi, contractAddress);
+            } else {
+                document.getElementById('status').innerText = 'Please install MetaMask!';
             }
         }
 
-        document.getElementById("connect-wallet").addEventListener("click", connectWallet);
-        
-        init();
-    </script>
+        // Connect wallet
+        document.getElementById('connectWallet').addEventListener('click', init);
 
+        // Stake function
+        function stake() {
+            const amount = document.getElementById('amount').value;
+            const lockDuration = document.getElementById('lockDuration').value;
+            stakingContract.methods.stake(amount, lockDuration).send({ from: web3.eth.defaultAccount })
+                .on('transactionHash', function(hash) {
+                    document.getElementById('status').innerText = `Transaction sent: ${hash}`;
+                })
+                .on('confirmation', function(confirmationNumber, receipt){
+                    document.getElementById('status').innerText = `Stake confirmed with ${confirmationNumber} confirmations.`;
+                });
+        }
+
+        // Withdraw function
+        function withdraw() {
+            stakingContract.methods.withdraw().send({ from: web3.eth.defaultAccount })
+                .on('transactionHash', function(hash) {
+                    document.getElementById('status').innerText = `Withdraw transaction sent: ${hash}`;
+                })
+                .on('confirmation', function(confirmationNumber, receipt){
+                    document.getElementById('status').innerText = `Withdraw confirmed with ${confirmationNumber} confirmations.`;
+                });
+        }
+
+        // Claim Rewards function
+        function claimRewards() {
+            stakingContract.methods.claimRewards().send({ from: web3.eth.defaultAccount })
+                .on('transactionHash', function(hash) {
+                    document.getElementById('status').innerText = `Claim Rewards transaction sent: ${hash}`;
+                })
+                .on('confirmation', function(confirmationNumber, receipt){
+                    document.getElementById('status').innerText = `Rewards claimed with ${confirmationNumber} confirmations.`;
+                });
+        }
+
+        // Exit function
+        function exit() {
+            stakingContract.methods.exit().send({ from: web3.eth.defaultAccount })
+                .on('transactionHash', function(hash) {
+                    document.getElementById('status').innerText = `Exit transaction sent: ${hash}`;
+                })
+                .on('confirmation', function(confirmationNumber, receipt){
+                    document.getElementById('status').innerText = `Exit confirmed with ${confirmationNumber} confirmations.`;
+                });
+        }
+    </script>
 </body>
 </html>
