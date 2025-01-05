@@ -1,138 +1,446 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staking DApp</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+    <title>Staking Contract Interaction</title>
+    <script src="https://cdn.ethers.io/ethers-5.6.5.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            color: #333;
-            padding: 20px;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 20px;
-            background: #fff;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-        }
-        button {
-            margin: 10px 0;
-            padding: 10px;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
+            text-align: center;
+            margin-top: 50px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Staking DApp</h2>
 
-        <div id="connect-wallet">
-            <button onclick="connectWallet()">Connect Wallet</button>
+    <h1>Staking Contract Interaction</h1>
+    <p>Enter amount and lock duration to stake:</p>
+
+    <form id="stake-form">
+        <div>
+            <label for="amount">Amount (in tokens):</label>
+            <input type="number" id="amount" required>
         </div>
-
-        <div id="contract-actions" style="display: none;">
-            <h3>Stake Tokens</h3>
-            <input type="number" id="stakeAmount" placeholder="Amount to stake">
-            <input type="number" id="lockDuration" placeholder="Lock duration (seconds)">
-            <button onclick="stakeTokens()">Stake</button>
-
-            <h3>Claim Rewards</h3>
-            <button onclick="claimRewards()">Claim</button>
-
-            <h3>Withdraw Staked Tokens</h3>
-            <button onclick="withdrawTokens()">Withdraw</button>
-
-            <h3>Emergency Withdraw</h3>
-            <button onclick="emergencyWithdraw()">Emergency Withdraw</button>
+        <div>
+            <label for="lock-duration">Lock Duration (in seconds):</label>
+            <input type="number" id="lock-duration" required>
         </div>
+        <button type="submit">Stake</button>
+    </form>
 
-        <p id="status"></p>
-    </div>
+    <p id="status"></p>
 
     <script>
-        let web3;
-        let contract;
-        const contractAddress = "<YOUR_CONTRACT_ADDRESS>";
-        const contractABI = <YOUR_CONTRACT_ABI>;
+        // Configuration
+        const contractAddress = "0xd9145CCE52D386f254917e481eB44e9943F39138"; // Replace with your contract address
+        const contractABI = [
+	{
+		"inputs": [],
+		"name": "claimRewards",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "depositRewards",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "exit",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "renounceOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_stakingToken",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_rewardToken",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			}
+		],
+		"name": "OwnableInvalidOwner",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "OwnableUnauthorizedAccount",
+		"type": "error"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "previousOwner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "OwnershipTransferred",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "RewardDeposited",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "reward",
+				"type": "uint256"
+			}
+		],
+		"name": "RewardPaid",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "lockDuration",
+				"type": "uint256"
+			}
+		],
+		"name": "stake",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "lockUntil",
+				"type": "uint256"
+			}
+		],
+		"name": "Staked",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "withdraw",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "Withdrawn",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "earned",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "lastUpdateTime",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "rewardPerToken",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "rewardPerTokenStored",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "rewardRatePerSecond",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "rewardToken",
+		"outputs": [
+			{
+				"internalType": "contract IERC20",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "stakes",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "rewards",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "lockUntil",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "rewardPerTokenPaid",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "stakingToken",
+		"outputs": [
+			{
+				"internalType": "contract IERC20",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "totalRewardPoints",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "totalStaked",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]; // Replace with your contract ABI
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        let signer;
 
-        async function connectWallet() {
-            if (window.ethereum) {
-                try {
-                    await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    web3 = new Web3(window.ethereum);
-                    document.getElementById('connect-wallet').style.display = 'none';
-                    document.getElementById('contract-actions').style.display = 'block';
-                    contract = new web3.eth.Contract(contractABI, contractAddress);
-                    updateStatus("Wallet connected successfully!");
-                } catch (error) {
-                    updateStatus(`Error connecting wallet: ${error.message}`);
-                }
-            } else {
-                updateStatus("MetaMask is not installed.");
-            }
+        async function init() {
+            // Request access to user's MetaMask wallet
+            await provider.send("eth_requestAccounts", []);
+            signer = provider.getSigner();
+            document.getElementById("stake-form").addEventListener("submit", stake);
         }
 
-        async function stakeTokens() {
-            const accounts = await web3.eth.getAccounts();
-            const amount = document.getElementById('stakeAmount').value;
-            const lockDuration = document.getElementById('lockDuration').value;
+        async function stake(event) {
+            event.preventDefault();
+
+            const amount = ethers.utils.parseUnits(document.getElementById("amount").value, 18); // Convert amount to wei
+            const lockDuration = parseInt(document.getElementById("lock-duration").value, 10);
+            const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
             try {
-                await contract.methods.stake(amount, lockDuration).send({ from: accounts[0] });
-                updateStatus("Tokens staked successfully!");
+                const tx = await contract.stake(amount, lockDuration, { gasLimit: 600000 });
+                document.getElementById("status").innerText = "Transaction sent! Waiting for confirmation...";
+                await tx.wait();
+                document.getElementById("status").innerText = "Staking successful!";
             } catch (error) {
-                updateStatus(`Error staking tokens: ${error.message}`);
+                document.getElementById("status").innerText = `Error: ${error.message}`;
             }
         }
 
-        async function claimRewards() {
-            const accounts = await web3.eth.getAccounts();
-
-            try {
-                await contract.methods.claimRewards().send({ from: accounts[0] });
-                updateStatus("Rewards claimed successfully!");
-            } catch (error) {
-                updateStatus(`Error claiming rewards: ${error.message}`);
-            }
-        }
-
-        async function withdrawTokens() {
-            const accounts = await web3.eth.getAccounts();
-
-            try {
-                await contract.methods.withdraw().send({ from: accounts[0] });
-                updateStatus("Tokens withdrawn successfully!");
-            } catch (error) {
-                updateStatus(`Error withdrawing tokens: ${error.message}`);
-            }
-        }
-
-        async function emergencyWithdraw() {
-            const accounts = await web3.eth.getAccounts();
-
-            try {
-                await contract.methods.emergencyWithdraw().send({ from: accounts[0] });
-                updateStatus("Emergency withdrawal successful!");
-            } catch (error) {
-                updateStatus(`Error during emergency withdrawal: ${error.message}`);
-            }
-        }
-
-        function updateStatus(message) {
-            document.getElementById('status').innerText = message;
-        }
+        init();
     </script>
+
 </body>
 </html>
