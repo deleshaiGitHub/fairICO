@@ -1,10 +1,10 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staking Contract Interaction</title>
-    <script src="https://cdn.ethers.io/ethers-5.6.5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -18,24 +18,43 @@
     <h1>Staking Contract Interaction</h1>
     <p>Enter amount and lock duration to stake:</p>
 
-    <form id="stake-form">
-        <div>
-            <label for="amount">Amount (in tokens):</label>
-            <input type="number" id="amount" required>
-        </div>
-        <div>
-            <label for="lock-duration">Lock Duration (in seconds):</label>
-            <input type="number" id="lock-duration" required>
-        </div>
-        <button type="submit">Stake</button>
-    </form>
+    <button id="connect-wallet">Connect Wallet</button>
+    <div id="wallet-info" style="display: none;">
+        <form id="stake-form">
+            <div>
+                <label for="amount">Amount (in tokens):</label>
+                <input type="number" id="amount" required>
+            </div>
+            <div>
+                <label for="lock-duration">Lock Duration (in seconds):</label>
+                <input type="number" id="lock-duration" required>
+            </div>
+            <button type="submit">Stake</button>
+        </form>
+    </div>
 
     <p id="status"></p>
 
     <script>
-        // Configuration
-        const contractAddress = "0xd9145CCE52D386f254917e481eB44e9943F39138"; // Replace with your contract address
-        const contractABI = [
+        let provider, signer, stakingContract;
+
+        async function connectWallet() {
+            if (window.ethereum) {
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                signer = provider.getSigner();
+                document.getElementById("wallet-info").style.display = "block";
+                document.getElementById("connect-wallet").style.display = "none";
+                document.getElementById("status").innerText = "Wallet connected!";
+            } else {
+                document.getElementById("status").innerText = "Please install MetaMask!";
+            }
+        }
+
+        async function init() {
+            stakingContract = new ethers.Contract(
+                "YOUR_CONTRACT_ADDRESS_HERE",  0xd9145CCE52D386f254917e481eB44e9943F39138// Replace with your contract address
+                YOUR_CONTRACT_ABI,  [
 	{
 		"inputs": [],
 		"name": "claimRewards",
@@ -411,14 +430,10 @@
 		"stateMutability": "view",
 		"type": "function"
 	}
-]; // Replace with your contract ABI
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        let signer;
+]           // Replace with your contract ABI
+                signer
+            );
 
-        async function init() {
-            // Request access to user's MetaMask wallet
-            await provider.send("eth_requestAccounts", []);
-            signer = provider.getSigner();
             document.getElementById("stake-form").addEventListener("submit", stake);
         }
 
@@ -427,10 +442,9 @@
 
             const amount = ethers.utils.parseUnits(document.getElementById("amount").value, 18); // Convert amount to wei
             const lockDuration = parseInt(document.getElementById("lock-duration").value, 10);
-            const contract = new ethers.Contract(contractAddress, contractABI, signer);
-
+            
             try {
-                const tx = await contract.stake(amount, lockDuration, { gasLimit: 600000 });
+                const tx = await stakingContract.stake(amount, lockDuration, { gasLimit: 600000 });
                 document.getElementById("status").innerText = "Transaction sent! Waiting for confirmation...";
                 await tx.wait();
                 document.getElementById("status").innerText = "Staking successful!";
@@ -439,6 +453,8 @@
             }
         }
 
+        document.getElementById("connect-wallet").addEventListener("click", connectWallet);
+        
         init();
     </script>
 
