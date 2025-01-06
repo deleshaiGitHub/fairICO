@@ -1,87 +1,53 @@
-const stakingContractAddress = "YOUR_CONTRACT_ADDRESS_HERE";
-const stakingABI = [
-    // Include the relevant ABI entries here for interacting with the contract
-];
+// Load the ABI definitions from the ABI file
+const stakingContractABI = require('./staking_abi.js').stakingContractABI;
+const tokenContractABI = require('./staking_abi.js').tokenContractABI;
 
-let provider, signer, stakingContract;
+// Initialize Web3
+if (typeof Web3 !== "undefined") {
+    web3 = new Web3(window.ethereum);
 
-document.addEventListener("DOMContentLoaded", async () => {
-    if (window.ethereum) {
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        signer = provider.getSigner();
-        stakingContract = new ethers.Contract(stakingContractAddress, stakingABI, signer);
+    const stakingContractAddress = '0xc67314c605A1A9F437a36f451B2C35e5A956562F';
+    const stakingTokenAddress = '0x7D1F668D0CDb20127cF9ed657DC634c7c6b2c967';
 
-        // Display initial status
-        updateStakingStatus();
-    } else {
-        alert("MetaMask is not installed!");
+    const stakingContract = new web3.eth.Contract(stakingContractABI, stakingContractAddress);
+    const stakingTokenContract = new web3.eth.Contract(tokenContractABI, stakingTokenAddress);
+
+    async function approveAndStake() {
+        let amount = document.getElementById('tokenAmount').value;
+        let duration = document.getElementById('lockingPeriod').value;
+
+        if (!amount || !duration) {
+            alert('Please enter both amount and duration.');
+            return;
+        }
+
+        try {
+            const accounts = await web3.eth.requestAccounts();
+            const fromAddress = accounts[0];
+
+            // Approve the token
+            let approvalTx = await stakingTokenContract.methods.approve(stakingContractAddress, web3.utils.toWei(amount, 'ether')).send({
+                from: fromAddress,
+                gas: 300000
+            });
+
+            console.log('Token approved:', approvalTx);
+
+            // Lock tokens and send transaction to staking contract
+            let stakingTx = await stakingContract.methods.lockTokens(
+                web3.utils.toWei(amount, 'ether'),
+                duration
+            ).send({
+                from: fromAddress,
+                gas: 300000
+            });
+
+            document.getElementById('transactionStatus').innerText = `Staking successful! Transaction: ${stakingTx.transactionHash}`;
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('transactionStatus').innerText = 'An error occurred during staking.';
+        }
     }
-
-    // Lock tokens form submission
-    document.getElementById("lockTokensForm").addEventListener("submit", async (event) => {
-        event.preventDefault();
-
-        const amount = document.getElementById("lockAmount").value;
-        const period = document.getElementById("lockingPeriod").value;
-
-        try {
-            const tx = await stakingContract.lockTokens(amount, period);
-            await tx.wait();
-            alert("Tokens locked successfully!");
-            updateStakingStatus();
-        } catch (err) {
-            console.error(err);
-            alert("Error locking tokens.");
-        }
-    });
-
-    // Unlock tokens
-    document.getElementById("unlockTokensButton").addEventListener("click", async () => {
-        try {
-            const tx = await stakingContract.unlockTokens();
-            await tx.wait();
-            alert("Tokens unlocked successfully!");
-            updateStakingStatus();
-        } catch (err) {
-            console.error(err);
-            alert("Error unlocking tokens.");
-        }
-    });
-
-    // Claim rewards
-    document.getElementById("claimRewardsButton").addEventListener("click", async () => {
-        try {
-            const tx = await stakingContract.getRewards();
-            await tx.wait();
-            alert("Rewards claimed successfully!");
-            updateStakingStatus();
-        } catch (err) {
-            console.error(err);
-            alert("Error claiming rewards.");
-        }
-    });
-
-    // Release vested tokens
-    document.getElementById("releaseTokensButton").addEventListener("click", async () => {
-        try {
-            const tx = await stakingContract.release();
-            await tx.wait();
-            alert("Tokens released successfully!");
-            updateStakingStatus();
-        } catch (err) {
-            console.error(err);
-            alert("Error releasing tokens.");
-        }
-    });
-});
-
-// Update staking status
-async function updateStakingStatus() {
-    try {
-        const totalRewardPoints = await stakingContract.totalRewardPoints();
-        document.getElementById("stakingStatus").innerText = `Total Reward Points: ${totalRewardPoints}`;
-    } catch (err) {
-        console.error(err);
-        document.getElementById("stakingStatus").innerText = "Unable to fetch status.";
-    }
+} else {
+    console.log("Web3 not found. Please install MetaMask.");
 }
