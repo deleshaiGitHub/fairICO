@@ -595,4 +595,4 @@ const tokenContractABI = [
       "type": "function"
     }
 ];
-export { stakingContractABI, tokenContractABI };
+
