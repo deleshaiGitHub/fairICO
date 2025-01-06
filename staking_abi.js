@@ -1,5 +1,5 @@
 // Staking contract ABI
-export const stakingContractABI = [
+const stakingContractABI = [
     {
       "inputs": [
         {
@@ -283,7 +283,7 @@ export const stakingContractABI = [
     }
 ];
 
-export const tokenContractABI = [
+const tokenContractABI = [
     {
       "inputs": [],
       "stateMutability": "nonpayable",
@@ -595,3 +595,4 @@ export const tokenContractABI = [
       "type": "function"
     }
 ];
+export { stakingContractABI, tokenContractABI };
