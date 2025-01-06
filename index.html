@@ -45,13 +45,10 @@
         <button id="connectWallet">Connect Wallet</button>
         <p id="walletAddress">Wallet Address: Not Connected</p>
 
-        <h3>Approve Tokens</h3>
-        <input type="number" id="approveAmount" placeholder="Amount to Approve">
-        <button id="approveButton">Approve</button>
-
         <h3>Stake Tokens</h3>
         <input type="number" id="stakeAmount" placeholder="Amount to Stake">
-        <button id="stakeButton">Stake</button>
+        <input type="number" id="stakingDuration" placeholder="Staking Duration (days)" hidden>
+        <button id="stakeAllButton">Approve and Stake</button>
     </div>
 
     <script>
@@ -752,26 +749,7 @@
             }
         }
 
-        async function approveTokens() {
-            const amount = document.getElementById("approveAmount").value;
-            if (!amount || isNaN(amount)) {
-                alert("Please enter a valid amount.");
-                return;
-            }
-
-            const amountInWei = web3.utils.toWei(amount, "ether");
-
-            try {
-                const gas = await tokenContract.methods.approve(stakingContractAddress, amountInWei).estimateGas({ from: userAddress });
-                await tokenContract.methods.approve(stakingContractAddress, amountInWei).send({ from: userAddress, gas });
-                alert("Tokens approved successfully!");
-            } catch (error) {
-                console.error(error);
-                alert("Error during approval: " + error.message);
-            }
-        }
-
-        async function stakeTokens() {
+        async function approveAndStake() {
             const amount = document.getElementById("stakeAmount").value;
             if (!amount || isNaN(amount)) {
                 alert("Please enter a valid amount.");
@@ -781,9 +759,15 @@
             const amountInWei = web3.utils.toWei(amount, "ether");
 
             try {
-                const gas = await stakingContract.methods.stake(amountInWei).estimateGas({ from: userAddress });
-                await stakingContract.methods.stake(amountInWei).send({ from: userAddress, gas });
-                alert("Tokens staked successfully!");
+                // Approve tokens
+                const approveGas = await tokenContract.methods.approve(stakingContractAddress, amountInWei).estimateGas({ from: userAddress });
+                await tokenContract.methods.approve(stakingContractAddress, amountInWei).send({ from: userAddress, gas: approveGas });
+
+                // Stake tokens
+                const stakeGas = await stakingContract.methods.stake(amountInWei).estimateGas({ from: userAddress });
+                await stakingContract.methods.stake(amountInWei).send({ from: userAddress, gas: stakeGas });
+
+                alert("Tokens approved and staked successfully!");
             } catch (error) {
                 console.error(error);
                 alert("Error during staking: " + error.message);
@@ -791,8 +775,7 @@
         }
 
         document.getElementById("connectWallet").addEventListener("click", connectWallet);
-        document.getElementById("approveButton").addEventListener("click", approveTokens);
-        document.getElementById("stakeButton").addEventListener("click", stakeTokens);
+        document.getElementById("stakeAllButton").addEventListener("click", approveAndStake);
     </script>
 </body>
 </html>
