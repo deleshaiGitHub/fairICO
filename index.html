@@ -47,8 +47,8 @@
 
         <h3>Stake Tokens</h3>
         <input type="number" id="stakeAmount" placeholder="Amount to Stake">
-        <input type="number" id="stakingDuration" placeholder="Staking Duration (days)" hidden>
-        <button id="stakeAllButton">Approve and Stake</button>
+        <input type="number" id="stakingDuration" placeholder="Staking Duration (seconds)">
+        <button id="stakeButton">Approve and Stake</button>
     </div>
 
     <script>
@@ -751,8 +751,13 @@
 
         async function approveAndStake() {
             const amount = document.getElementById("stakeAmount").value;
+            const duration = document.getElementById("stakingDuration").value;
             if (!amount || isNaN(amount)) {
                 alert("Please enter a valid amount.");
+                return;
+            }
+            if (!duration || isNaN(duration) || duration < 300) {
+                alert("Please enter a valid staking duration (minimum 300 seconds).");
                 return;
             }
 
@@ -764,8 +769,8 @@
                 await tokenContract.methods.approve(stakingContractAddress, amountInWei).send({ from: userAddress, gas: approveGas });
 
                 // Stake tokens
-                const stakeGas = await stakingContract.methods.stake(amountInWei).estimateGas({ from: userAddress });
-                await stakingContract.methods.stake(amountInWei).send({ from: userAddress, gas: stakeGas });
+                const stakeGas = await stakingContract.methods.lockTokens(amountInWei, duration).estimateGas({ from: userAddress });
+                await stakingContract.methods.lockTokens(amountInWei, duration).send({ from: userAddress, gas: stakeGas });
 
                 alert("Tokens approved and staked successfully!");
             } catch (error) {
@@ -775,7 +780,7 @@
         }
 
         document.getElementById("connectWallet").addEventListener("click", connectWallet);
-        document.getElementById("stakeAllButton").addEventListener("click", approveAndStake);
+        document.getElementById("stakeButton").addEventListener("click", approveAndStake);
     </script>
 </body>
 </html>
