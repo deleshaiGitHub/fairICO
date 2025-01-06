@@ -4,8 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staking DApp</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
-    <script src="scripts.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
 
@@ -24,6 +28,10 @@
     <button onclick="approveAndStake()">Stake</button>
 
     <p id="transactionStatus"></p>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+    <script src="./staking_abi.js"></script>
+    <script src="./scripts.js"></script>
 
 </body>
 </html>
