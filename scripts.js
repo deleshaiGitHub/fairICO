@@ -1,4 +1,4 @@
-const stakingContractABI = require('./staking_abi');
+const { stakingContractABI } = require('./staking_abi');
 
 if (typeof Web3 !== "undefined") {
     web3 = new Web3(window.ethereum);
