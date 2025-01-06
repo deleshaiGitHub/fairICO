@@ -1,8 +1,7 @@
-// Load the ABI definitions from the ABI file
+// scripts.js
 const stakingContractABI = require('./staking_abi.js').stakingContractABI;
 const tokenContractABI = require('./staking_abi.js').tokenContractABI;
 
-// Initialize Web3
 if (typeof Web3 !== "undefined") {
     web3 = new Web3(window.ethereum);
 
@@ -25,7 +24,6 @@ if (typeof Web3 !== "undefined") {
             const accounts = await web3.eth.requestAccounts();
             const fromAddress = accounts[0];
 
-            // Approve the token
             let approvalTx = await stakingTokenContract.methods.approve(stakingContractAddress, web3.utils.toWei(amount, 'ether')).send({
                 from: fromAddress,
                 gas: 300000
@@ -33,7 +31,6 @@ if (typeof Web3 !== "undefined") {
 
             console.log('Token approved:', approvalTx);
 
-            // Lock tokens and send transaction to staking contract
             let stakingTx = await stakingContract.methods.lockTokens(
                 web3.utils.toWei(amount, 'ether'),
                 duration
@@ -48,6 +45,7 @@ if (typeof Web3 !== "undefined") {
             document.getElementById('transactionStatus').innerText = 'An error occurred during staking.';
         }
     }
+
 } else {
     console.log("Web3 not found. Please install MetaMask.");
 }
