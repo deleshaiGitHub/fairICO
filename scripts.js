@@ -1,6 +1,4 @@
-// scripts.js
-const stakingContractABI = require('./staking_abi.js').stakingContractABI;
-const tokenContractABI = require('./staking_abi.js').tokenContractABI;
+import { stakingContractABI, tokenContractABI } from './staking_abi.js';
 
 if (typeof Web3 !== "undefined") {
     web3 = new Web3(window.ethereum);
