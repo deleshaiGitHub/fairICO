@@ -1,6 +1,5 @@
 // Staking contract ABI
-module.exports = {
-  stakingContractABI: [
+export const stakingContractABI = [
     {
       "inputs": [
         {
@@ -282,10 +281,9 @@ module.exports = {
       "stateMutability": "nonpayable",
       "type": "function"
     }
-  ],
+];
 
-  // Token contract ABI
-  tokenContractABI: [
+export const tokenContractABI = [
     {
       "inputs": [],
       "stateMutability": "nonpayable",
@@ -472,16 +470,11 @@ module.exports = {
       "inputs": [
         {
           "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "spender",
+          "name": "account",
           "type": "address"
         }
       ],
-      "name": "allowance",
+      "name": "balanceOf",
       "outputs": [
         {
           "internalType": "uint256",
@@ -493,19 +486,32 @@ module.exports = {
       "type": "function"
     },
     {
+      "inputs": [],
+      "name": "decimals",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
         {
           "internalType": "address",
           "name": "spender",
           "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "value",
-          "type": "uint256"
         }
       ],
-      "name": "approve",
+      "name": "increaseAllowance",
       "outputs": [
         {
           "internalType": "bool",
@@ -520,12 +526,26 @@ module.exports = {
       "inputs": [
         {
           "internalType": "address",
-          "name": "from",
+          "name": "spender",
           "type": "address"
-        },
+        }
+      ],
+      "name": "reduceAllowance",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
         {
           "internalType": "address",
-          "name": "to",
+          "name": "spender",
           "type": "address"
         },
         {
@@ -534,7 +554,7 @@ module.exports = {
           "type": "uint256"
         }
       ],
-      "name": "transfer",
+      "name": "approve",
       "outputs": [
         {
           "internalType": "bool",
@@ -574,5 +594,4 @@ module.exports = {
       "stateMutability": "nonpayable",
       "type": "function"
     }
-  ]
-};
+];
