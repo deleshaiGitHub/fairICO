@@ -22,6 +22,7 @@ if (typeof Web3 !== "undefined") {
             const accounts = await web3.eth.requestAccounts();
             const fromAddress = accounts[0];
 
+            // Approve staking contract to spend the staking tokens
             let approvalTx = await stakingTokenContract.methods.approve(stakingContractAddress, web3.utils.toWei(amount, 'ether')).send({
                 from: fromAddress,
                 gas: 300000
@@ -29,6 +30,7 @@ if (typeof Web3 !== "undefined") {
 
             console.log('Token approved:', approvalTx);
 
+            // Staking tokens
             let stakingTx = await stakingContract.methods.lockTokens(
                 web3.utils.toWei(amount, 'ether'),
                 duration
