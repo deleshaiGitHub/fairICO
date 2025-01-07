@@ -3,35 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staking DApp</title>
+    <title>Mint Tokens</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; margin: 50px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        input { padding: 10px; margin: 10px; width: 60px; text-align: center; }
+        p { font-size: 18px; }
     </style>
 </head>
 <body>
+    <h1>Mintable ERC20 Token</h1>
+    <p>Welcome to the token minting DApp!</p>
+    <p>Each token costs <b>0.01 ETH</b>. You can mint up to <b>100 tokens</b> per transaction.</p>
 
-    <h1>Stake Tokens</h1>
+    <label for="quantity">Enter quantity:</label>
+    <input type="number" id="quantity" min="1" max="100" placeholder="Qty">
+    <button id="mintButton">Mint Tokens</button>
 
-    <div>
-        <label for="tokenAmount">Amount to Stake:</label>
-        <input type="text" id="tokenAmount" placeholder="Enter amount to stake">
-    </div>
+    <p id="status"></p>
 
-    <div>
-        <label for="lockingPeriod">Locking Period (seconds):</label>
-        <input type="text" id="lockingPeriod" placeholder="Enter locking period in seconds">
-    </div>
+    <script>
+        const CONTRACT_ADDRESS = "0x4DA73c3ef0b64d682F2D7E77Df386729CCb6056e";
+        const ABI = [
+            // Insert the ABI here
+        ];
 
-    <button onclick="approveAndStake()">Stake</button>
+        let web3;
+        let contract;
 
-    <p id="transactionStatus"></p>
+        async function loadWeb3() {
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+                await window.ethereum.enable();
+                contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
+                document.getElementById("status").innerText = "Connected to wallet.";
+            } else {
+                alert("Please install MetaMask to use this DApp.");
+            }
+        }
 
-    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
-    <script src="./staking_abi.js"></script>
-    <script src="./scripts.js"></script>
+        async function mintTokens() {
+            const quantity = document.getElementById("quantity").value;
+            if (!quantity || quantity < 1 || quantity > 100) {
+                alert("Please enter a valid quantity (1-100).");
+                return;
+            }
 
+            const accounts = await web3.eth.getAccounts();
+            const price = web3.utils.toWei((0.01 * quantity).toString(), "ether");
+
+            document.getElementById("status").innerText = "Minting tokens...";
+
+            try {
+                await contract.methods.mint(web3.utils.toWei(quantity, "ether")).send({
+                    from: accounts[0],
+                    value: price
+                });
+                document.getElementById("status").innerText = "Mint successful! Tokens have been sent to your wallet.";
+            } catch (error) {
+                console.error(error);
+                document.getElementById("status").innerText = "Minting failed. Check console for details.";
+            }
+        }
+
+        document.getElementById("mintButton").addEventListener("click", mintTokens);
+
+        window.addEventListener("load", loadWeb3);
+    </script>
 </body>
 </html>
