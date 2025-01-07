@@ -483,7 +483,7 @@
         async function loadWeb3() {
             if (window.ethereum) {
                 web3 = new Web3(window.ethereum);
-                await window.ethereum.enable();
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
                 contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
                 document.getElementById("status").innerText = "Connected to wallet.";
             } else {
@@ -494,7 +494,7 @@
         async function mintTokens() {
             const quantity = document.getElementById("quantity").value;
             if (!quantity || quantity < 1 || quantity > 100) {
-                alert("Please enter a valid quantity (1-100).");
+                alert("Please enter a valid quantity (1-100).);");
                 return;
             }
 
@@ -504,7 +504,7 @@
             document.getElementById("status").innerText = "Minting tokens...";
 
             try {
-                await contract.methods.mint(web3.utils.toWei(quantity, "ether")).send({
+                await contract.methods.mint(web3.utils.toWei(quantity.toString(), "ether")).send({
                     from: accounts[0],
                     value: price
                 });
