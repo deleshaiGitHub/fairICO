@@ -518,19 +518,21 @@
         const paymentToken = new web3.eth.Contract(paymentTokenABI, paymentTokenAddress);
         const mintableERC20 = new web3.eth.Contract(mintableERC20ABI, mintableERC20Address);
 
-        async function approveSpend() {
-            const amount = document.getElementById("amount").value;
-            const mintPrice = 10 * 10**18; // Adjust based on your contract
-            const requiredPayment = mintPrice * amount;
-            try {
-                await paymentToken.methods.approve(mintableERC20Address, requiredPayment)
-                    .send({ from: userAddress });
-                alert("Approval successful!");
-                document.getElementById("mintButton").disabled = false;
-            } catch (error) {
-                alert("Approval failed. Make sure you have enough tokens.");
-            }
-        }
+       async function approveSpend() {
+    const amount = document.getElementById("amount").value;
+    const mintPrice = 10; // Adjusted for 1:1 ratio with no decimals
+    const requiredPayment = mintPrice * amount;
+
+    try {
+        await paymentToken.methods.approve(mintableERC20Address, requiredPayment)
+            .send({ from: userAddress });
+        alert("Approval successful!");
+        document.getElementById("mintButton").disabled = false;
+    } catch (error) {
+        alert("Approval failed. Make sure you have enough tokens.");
+    }
+}
+
 
         async function mintTokens() {
             const amount = document.getElementById("amount").value;
