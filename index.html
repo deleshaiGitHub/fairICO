@@ -3,546 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mint Tokens</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.4/web3.min.js"></script>
+    <title>Hedge Hounds Project</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            color: #ffffff;
+            background: linear-gradient(135deg, #1e1e2f, #283593);
+        }
+
+        header {
+            text-align: center;
+            padding: 50px 20px;
+            background: linear-gradient(135deg, #111, #222);
+        }
+
+        header h1 {
+            font-size: 3rem;
+            margin: 0;
+            color: #4caf50;
+            text-transform: uppercase;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            color: #bdbdbd;
+        }
+
+        .cta-button {
+            margin-top: 20px;
+            padding: 15px 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #ffffff;
+            background: #4caf50;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background: #45a149;
+        }
+
+        section {
+            padding: 50px 20px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .feature {
+            background: #333;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature h3 {
+            font-size: 1.5rem;
+            color: #4caf50;
+        }
+
+        .feature p {
+            color: #bdbdbd;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: #111;
+            color: #bdbdbd;
+            margin-top: 50px;
+        }
+
+        footer a {
+            color: #4caf50;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-    <h1>Mintable ERC20 Token</h1>
-    <p>Approve and mint your tokens!</p>
-    
-    <label for="amount">Amount to mint:</label>
-    <input type="number" id="amount" min="1" placeholder="Amount to mint">
-    
-    <button id="approveButton" onclick="approveSpend()">Approve Payment Token</button>
-    <button id="mintButton" onclick="mintTokens()" disabled>Mint Tokens</button>
-    
-    <script>
-        const web3 = new Web3(Web3.givenProvider || "https://bsc-dataseed.binance.org/");
-        const userAddress = "0x877e82af5c104D37c9B39Ccb165b606594DDE883"; // Replace with actual user address
-        const paymentTokenAddress = "0x7D1F668D0CDb20127cF9ed657DC634c7c6b2c967"; // Replace with payment token address
-        const mintableERC20Address = "0x24A183441DF9E8cC5F9AB187fEE026Cb1B3FE005"; // Replace with your mintable contract address
+    <header>
+        <h1>Hedge Hounds</h1>
+        <p>Next-Gen Crypto Trading and Rewards Ecosystem</p>
+        <button class="cta-button">Join Us</button>
+    </header>
 
-        const paymentTokenABI = [
-            // ERC20 ABI (only relevant functions like approve, allowance, transferFrom)
-            {
-                "constant": false,
-                "inputs": [
-                    { "name": "spender", "type": "address" },
-                    { "name": "amount", "type": "uint256" }
-                ],
-                "name": "approve",
-                "outputs": [{ "name": "", "type": "bool" }],
-                "type": "function"
-            },
-            {
-                "constant": true,
-                "inputs": [
-                    { "name": "account", "type": "address" }
-                ],
-                "name": "allowance",
-                "outputs": [{ "name": "", "type": "uint256" }],
-                "type": "function"
-            }
-        ];
+    <section>
+        <h2 style="text-align: center; color: #4caf50;">Why Hedge Hounds?</h2>
+        <div class="features">
+            <div class="feature">
+                <h3>Smart DCA Bots</h3>
+                <p>Leverage cutting-edge algorithms to trade stable tokens and ensure consistent growth.</p>
+            </div>
+            <div class="feature">
+                <h3>Passive Income</h3>
+                <p>Earn rewards from liquidity provider (LP) incentives and decentralized profits.</p>
+            </div>
+            <div class="feature">
+                <h3>Secure & Sustainable</h3>
+                <p>Focus on stable assets and reliable projects to reduce risk and ensure stability.</p>
+            </div>
+            <div class="feature">
+                <h3>Community Rewards</h3>
+                <p>Share in the success of our ecosystem with rewards distributed to token holders.</p>
+            </div>
+        </div>
+    </section>
 
-        const mintableERC20ABI = [
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "spender",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "approve",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "string",
-				"name": "_name",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "_symbol",
-				"type": "string"
-			},
-			{
-				"internalType": "address",
-				"name": "initialOwner",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "_paymentToken",
-				"type": "address"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "spender",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "allowance",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "needed",
-				"type": "uint256"
-			}
-		],
-		"name": "ERC20InsufficientAllowance",
-		"type": "error"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "sender",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "balance",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "needed",
-				"type": "uint256"
-			}
-		],
-		"name": "ERC20InsufficientBalance",
-		"type": "error"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "approver",
-				"type": "address"
-			}
-		],
-		"name": "ERC20InvalidApprover",
-		"type": "error"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "receiver",
-				"type": "address"
-			}
-		],
-		"name": "ERC20InvalidReceiver",
-		"type": "error"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "sender",
-				"type": "address"
-			}
-		],
-		"name": "ERC20InvalidSender",
-		"type": "error"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "spender",
-				"type": "address"
-			}
-		],
-		"name": "ERC20InvalidSpender",
-		"type": "error"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_amount",
-				"type": "uint256"
-			}
-		],
-		"name": "mint",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			}
-		],
-		"name": "OwnableInvalidOwner",
-		"type": "error"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "account",
-				"type": "address"
-			}
-		],
-		"name": "OwnableUnauthorizedAccount",
-		"type": "error"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "spender",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "Approval",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "previousOwner",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "OwnershipTransferred",
-		"type": "event"
-	},
-	{
-		"inputs": [],
-		"name": "renounceOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "transfer",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "Transfer",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "transferFrom",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "transferOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "withdraw",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "spender",
-				"type": "address"
-			}
-		],
-		"name": "allowance",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "account",
-				"type": "address"
-			}
-		],
-		"name": "balanceOf",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "decimals",
-		"outputs": [
-			{
-				"internalType": "uint8",
-				"name": "",
-				"type": "uint8"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "MAX_TOKENS_PER_TX",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "MINT_PRICE",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "name",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "",
-				"type": "string"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "owner",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "paymentToken",
-		"outputs": [
-			{
-				"internalType": "contract IERC20",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "symbol",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "",
-				"type": "string"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "totalSupply",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-];
-
-        const paymentToken = new web3.eth.Contract(paymentTokenABI, paymentTokenAddress);
-        const mintableERC20 = new web3.eth.Contract(mintableERC20ABI, mintableERC20Address);
-
-       async function approveSpend() {
-    const amount = document.getElementById("amount").value;
-    const mintPrice = 10; // Adjusted for 1:1 ratio with no decimals
-    const requiredPayment = mintPrice * amount;
-
-    try {
-        await paymentToken.methods.approve(mintableERC20Address, requiredPayment)
-            .send({ from: userAddress });
-        alert("Approval successful!");
-        document.getElementById("mintButton").disabled = false;
-    } catch (error) {
-        alert("Approval failed. Make sure you have enough tokens.");
-    }
-}
-
-
-        async function mintTokens() {
-            const amount = document.getElementById("amount").value;
-            try {
-                await mintableERC20.methods.mint(amount).send({ from: userAddress });
-                alert("Tokens minted successfully!");
-            } catch (error) {
-                alert("Minting failed. Check your approval or other issues.");
-            }
-        }
-    </script>
+    <footer>
+        <p>&copy; 2025 Hedge Hounds | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+    </footer>
 </body>
 </html>
