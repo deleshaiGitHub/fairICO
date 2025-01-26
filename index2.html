@@ -51,17 +51,16 @@
         const decimals0 = await token0Contract.decimals();
         const decimals1 = await token1Contract.decimals();
 
-        // Adjust reserves based on decimals
+        // Adjust reserves for decimals
         const adjustedReserve0 = reserve0.mul(ethers.BigNumber.from(10).pow(18 - decimals0));
         const adjustedReserve1 = reserve1.mul(ethers.BigNumber.from(10).pow(18 - decimals1));
 
         // Calculate price of AAVE (Token1) in terms of WBTC (Token0)
-        const priceToken1 = adjustedReserve0.gt(0)
-          ? adjustedReserve1.mul(ethers.BigNumber.from(10).pow(18)).div(adjustedReserve0).toNumber() / 10 ** 18
-          : 0;
+        const priceToken1 = adjustedReserve1.mul(ethers.BigNumber.from(10).pow(18)).div(adjustedReserve0);
 
-        // Display price
-        document.getElementById('priceToken1').textContent = priceToken1.toFixed(6) + " WBTC";
+        // Display price as a human-readable value
+        document.getElementById('priceToken1').textContent =
+          ethers.utils.formatUnits(priceToken1, 18) + " WBTC";
       } catch (error) {
         console.error("Error fetching data:", error);
         alert("An error occurred while fetching the price. Check the console for details.");
