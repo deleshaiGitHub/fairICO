@@ -16,7 +16,7 @@
         const provider = new ethers.providers.JsonRpcProvider('https://pulsechain-rpc.publicnode.com');
 
         // PLSX/DAI Pair Contract Address on PulseX
-        const pairAddress = '0xB2893ceA8080bF43b7b60B589EDaAb5211D98F23';
+        const pairAddress = '0xB2893ceA8080bF43b7b60B589EDaAb5211D98F23';  // PLSX/DAI pair
 
         // ERC-20 ABI (used to interact with the pair contract)
         const erc20Abi = [
@@ -38,9 +38,15 @@
                 const reservePLSX = reserves[0];  // Reserve for PLSX
                 const reserveDAI = reserves[1];   // Reserve for DAI (stablecoin)
                 
-                // DAI is 1:1 with USD, so its price is $1
-                const pricePLSX = reserveDAI / reservePLSX;  // Price of PLSX in terms of DAI
-                document.getElementById('price').innerText = `PLSX Price (in DAI): ${pricePLSX.toFixed(6)}`;
+                // PLSX/DAI Price Calculation
+                const pricePLSX = reserveDAI / reservePLSX; // Price of PLSX in terms of DAI
+                const priceDAI = reservePLSX / reserveDAI; // Price of DAI in terms of PLSX
+
+                // Display Price Information
+                document.getElementById('price').innerHTML = `
+                    <strong>PLSX Price in DAI:</strong> ${pricePLSX.toFixed(6)} DAI<br>
+                    <strong>DAI Price in PLSX:</strong> ${priceDAI.toFixed(6)} PLSX
+                `;
             } catch (error) {
                 console.error('Error fetching reserves:', error);
                 document.getElementById('price').innerText = 'Error fetching price.';
