@@ -1,71 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PulseX AAVE/WBTC Pair Price</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLSX/DAI Price Feed</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.0/dist/ethers.umd.min.js"></script>
 </head>
 <body>
-  <h1>PulseX AAVE/WBTC Pair Price</h1>
-  <p>Token0 (WBTC) Address: <span id="token0"></span></p>
-  <p>Token1 (AAVE) Address: <span id="token1"></span></p>
-  <p>Reserve0 (WBTC): <span id="reserve0"></span></p>
-  <p>Reserve1 (AAVE): <span id="reserve1"></span></p>
-  <p><b>AAVE Price in WBTC:</b> <span id="priceToken1"></span></p>
-  <button id="fetchPrice">Fetch Price</button>
+    <h1>PLSX/DAI Price Feed</h1>
+    <p id="price"></p>
+    <button onclick="checkPrice()">Get PLSX Price</button>
 
-  <script>
-    const RPC_URL = "https://pulsechain-rpc.publicnode.com";
-    const PAIR_ADDRESS = "0x901da5d07Ea7Ee8B17A61fca83076D3B4D4F7929";
-    const ERC20_ABI = [
-      "function decimals() view returns (uint8)"
-    ];
-    const PAIR_ABI = [
-      "function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)",
-      "function token0() external view returns (address)",
-      "function token1() external view returns (address)"
-    ];
+    <script>
+        // Replace with your PulseChain RPC endpoint
+        const provider = new ethers.JsonRpcProvider('https://pulsechain-rpc.publicnode.com');
 
-    document.getElementById('fetchPrice').addEventListener('click', async () => {
-      try {
-        const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
-        const pairContract = new ethers.Contract(PAIR_ADDRESS, PAIR_ABI, provider);
+        // PLSX/DAI Pair Contract Address on PulseX
+        const pairAddress = '0xB2893ceA8080bF43b7b60B589EDaAb5211D98F23';
 
-        // Fetch token addresses
-        const token0 = await pairContract.token0();
-        const token1 = await pairContract.token1();
-        document.getElementById('token0').textContent = token0;
-        document.getElementById('token1').textContent = token1;
+        // ERC-20 ABI (used to interact with the pair contract)
+        const erc20Abi = [
+            "function getReserves() external view returns (uint112, uint112, uint32)",
+            "function decimals() external view returns (uint8)"
+        ];
 
-        // Fetch reserves
-        const reserves = await pairContract.getReserves();
-        const reserve0 = ethers.BigNumber.from(reserves[0]);
-        const reserve1 = ethers.BigNumber.from(reserves[1]);
-        document.getElementById('reserve0').textContent = reserve0.toString();
-        document.getElementById('reserve1').textContent = reserve1.toString();
+        // Function to fetch reserves for PLSX/DAI pair
+        async function getReserves() {
+            const pairContract = new ethers.Contract(pairAddress, erc20Abi, provider);
+            const reserves = await pairContract.getReserves();
+            return reserves;
+        }
 
-        // Fetch decimals for each token
-        const token0Contract = new ethers.Contract(token0, ERC20_ABI, provider);
-        const token1Contract = new ethers.Contract(token1, ERC20_ABI, provider);
-        const decimals0 = await token0Contract.decimals();
-        const decimals1 = await token1Contract.decimals();
+        // Function to calculate price of PLSX in terms of DAI
+        async function calculatePrice() {
+            try {
+                const reserves = await getReserves();
+                const reservePLSX = reserves[0];  // Reserve for PLSX
+                const reserveDAI = reserves[1];   // Reserve for DAI (stablecoin)
+                
+                // DAI is 1:1 with USD, so its price is $1
+                const pricePLSX = reserveDAI / reservePLSX;  // Price of PLSX in terms of DAI
+                return pricePLSX;
+            } catch (error) {
+                console.error('Error fetching reserves:', error);
+                return null;
+            }
+        }
 
-        // Adjust reserves for decimals
-        const adjustedReserve0 = reserve0.mul(ethers.BigNumber.from(10).pow(18 - decimals0));
-        const adjustedReserve1 = reserve1.mul(ethers.BigNumber.from(10).pow(18 - decimals1));
-
-        // Calculate price of AAVE (Token1) in terms of WBTC (Token0)
-        const priceToken1 = adjustedReserve1.mul(ethers.BigNumber.from(10).pow(18)).div(adjustedReserve0);
-
-        // Display price as a human-readable value
-        document.getElementById('priceToken1').textContent =
-          ethers.utils.formatUnits(priceToken1, 18) + " WBTC";
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        alert("An error occurred while fetching the price. Check the console for details.");
-      }
-    });
-  </script>
+        // Function to check price and trigger events
+        async function checkPrice() {
+            try {
+                const price = await calculatePrice();
+                if (price !== null) {
+                    document.getElementById('price').innerText = `PLSX Price (in DAI): ${price.toFixed(6)}`;
+                    
+                    // Trigger sell event if price reaches target (example: sell if price > 1.5)
+                    const targetPrice = 1.5; // Example target price in DAI
+                    if (price > targetPrice) {
+                        alert('Target price reached! Triggering sell event.');
+                        // You can add your sell event logic here
+                    }
+                } else {
+                    document.getElementById('price').innerText = 'Error fetching price.';
+                }
+            } catch (error) {
+                console.error('Error checking price:', error);
+            }
+        }
+    </script>
 </body>
 </html>
