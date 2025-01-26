@@ -23,7 +23,7 @@
             "function getReserves() external view returns (uint112, uint112, uint32)"
         ];
 
-        // ABI for listening to Swap events
+        // ABI for listening to events (initially using Swap, may need adjustment based on real events)
         const swapEventABI = [
             "event Swap(address indexed sender, uint amount0In, uint amount1In, uint amount0Out, uint amount1Out, address indexed to)"
         ];
@@ -59,14 +59,27 @@
             }
         }
 
-        // Listen for Swap events to update the price automatically
-        function listenForEvents() {
-            pairContract.on("Swap", async (sender, amount0In, amount1In, amount0Out, amount1Out, to) => {
-                console.log(`Swap detected! Sender: ${sender}, Amount In: ${amount0In}, Amount Out: ${amount0Out}`);
-                
-                // After a swap, update the price
-                await getPrice();
-            });
+        // Listen for Swap events (or other events) to update the price automatically
+        async function listenForEvents() {
+            try {
+                const logs = await provider.getLogs({
+                    address: pairAddress,
+                    fromBlock: "latest",
+                    toBlock: "latest"
+                });
+
+                // Log the events to debug and find correct event signatures
+                console.log("Logs for events:", logs);
+
+                pairContract.on("Swap", async (sender, amount0In, amount1In, amount0Out, amount1Out, to) => {
+                    console.log(`Swap detected! Sender: ${sender}, Amount In: ${amount0In}, Amount Out: ${amount0Out}`);
+                    
+                    // After a swap, update the price
+                    await getPrice();
+                });
+            } catch (error) {
+                console.error("Error listening for events:", error);
+            }
         }
 
         // Start listening for events
