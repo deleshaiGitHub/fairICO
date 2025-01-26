@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PulseX Token Pair Price</title>
-  <!-- Use the UMD build of ethers.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 </head>
 <body>
@@ -20,6 +19,9 @@
   <script>
     const RPC_URL = "https://pulsechain-rpc.publicnode.com";
     const PAIR_ADDRESS = "0x901da5d07Ea7Ee8B17A61fca83076D3B4D4F7929";
+    const ERC20_ABI = [
+      "function decimals() view returns (uint8)"
+    ];
     const PAIR_ABI = [
       "function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)",
       "function token0() external view returns (address)",
@@ -34,27 +36,33 @@
         // Fetch token addresses
         const token0 = await pairContract.token0();
         const token1 = await pairContract.token1();
-
-        // Display token addresses
         document.getElementById('token0').textContent = token0;
         document.getElementById('token1').textContent = token1;
 
         // Fetch reserves
         const reserves = await pairContract.getReserves();
-        const reserve0 = reserves[0];
-        const reserve1 = reserves[1];
-
-        // Display reserves
+        const reserve0 = ethers.BigNumber.from(reserves[0]);
+        const reserve1 = ethers.BigNumber.from(reserves[1]);
         document.getElementById('reserve0').textContent = reserve0.toString();
         document.getElementById('reserve1').textContent = reserve1.toString();
 
+        // Fetch decimals for each token
+        const token0Contract = new ethers.Contract(token0, ERC20_ABI, provider);
+        const token1Contract = new ethers.Contract(token1, ERC20_ABI, provider);
+        const decimals0 = await token0Contract.decimals();
+        const decimals1 = await token1Contract.decimals();
+
+        // Adjust reserves based on decimals
+        const adjustedReserve0 = reserve0.mul(ethers.BigNumber.from(10).pow(18 - decimals0));
+        const adjustedReserve1 = reserve1.mul(ethers.BigNumber.from(10).pow(18 - decimals1));
+
         // Calculate prices
-        const priceToken0 = reserve1 / reserve0; // Token0 price in terms of Token1
-        const priceToken1 = reserve0 / reserve1; // Token1 price in terms of Token0
+        const priceToken0 = adjustedReserve1.div(adjustedReserve0).toString(); // Token0 price in terms of Token1
+        const priceToken1 = adjustedReserve0.div(adjustedReserve1).toString(); // Token1 price in terms of Token0
 
         // Display prices
-        document.getElementById('priceToken0').textContent = priceToken0.toFixed(6);
-        document.getElementById('priceToken1').textContent = priceToken1.toFixed(6);
+        document.getElementById('priceToken0').textContent = parseFloat(priceToken0).toFixed(6);
+        document.getElementById('priceToken1').textContent = parseFloat(priceToken1).toFixed(6);
       } catch (error) {
         console.error("Error fetching data:", error);
         alert("An error occurred while fetching prices. Check the console for details.");
