@@ -19,71 +19,58 @@
         const pairAddress = '0xB2893ceA8080bF43b7b60B589EDaAb5211D98F23';  // PLSX/DAI pair
 
         // ERC-20 ABI to interact with the pair contract
-        const erc20Abi = [
-            "function getReserves() external view returns (uint112, uint112, uint32)"
-        ];
-
-        // ABI for listening to events (initially using Swap, may need adjustment based on real events)
-        const swapEventABI = [
+        const pairAbi = [
+            "function getReserves() external view returns (uint112, uint112, uint32)",
             "event Swap(address indexed sender, uint amount0In, uint amount1In, uint amount0Out, uint amount1Out, address indexed to)"
         ];
 
         // Create contract instance for the pair contract
-        const pairContract = new ethers.Contract(pairAddress, erc20Abi, provider);
+        const pairContract = new ethers.Contract(pairAddress, pairAbi, provider);
 
         // Function to fetch reserves for PLSX/DAI pair
         async function getReserves() {
-            const reserves = await pairContract.getReserves();
-            return reserves;
+            try {
+                const reserves = await pairContract.getReserves();
+                return reserves;
+            } catch (error) {
+                console.error('Error fetching reserves:', error);
+                return null;
+            }
         }
 
         // Function to calculate the price of PLSX in terms of DAI
         async function getPrice() {
             try {
                 const reserves = await getReserves();
-                const reservePLSX = reserves[0];  // Reserve for PLSX
-                const reserveDAI = reserves[1];   // Reserve for DAI (stablecoin)
+                if (reserves) {
+                    const reservePLSX = ethers.utils.formatUnits(reserves[0], 18);  // Convert from BigNumber to a readable number
+                    const reserveDAI = ethers.utils.formatUnits(reserves[1], 18);   // Same here for DAI
 
-                // PLSX/DAI Price Calculation
-                const pricePLSX = reserveDAI / reservePLSX; // Price of PLSX in terms of DAI
-                const priceDAI = reservePLSX / reserveDAI; // Price of DAI in terms of PLSX
+                    // PLSX/DAI Price Calculation
+                    const pricePLSX = reserveDAI / reservePLSX; // Price of PLSX in terms of DAI
+                    const priceDAI = reservePLSX / reserveDAI; // Price of DAI in terms of PLSX
 
-                // Display Price Information
-                document.getElementById('price').innerHTML = `
-                    <strong>PLSX Price in DAI:</strong> ${pricePLSX.toFixed(6)} DAI<br>
-                    <strong>DAI Price in PLSX:</strong> ${priceDAI.toFixed(0)} PLSX
-                `;
+                    // Display Price Information
+                    document.getElementById('price').innerHTML = `
+                        <strong>PLSX Price in DAI:</strong> ${pricePLSX.toFixed(6)} DAI<br>
+                        <strong>DAI Price in PLSX:</strong> ${priceDAI.toFixed(0)} PLSX
+                    `;
+                } else {
+                    document.getElementById('price').innerText = 'Error fetching price.';
+                }
             } catch (error) {
-                console.error('Error fetching reserves:', error);
+                console.error('Error calculating price:', error);
                 document.getElementById('price').innerText = 'Error fetching price.';
             }
         }
 
-        // Listen for Swap events (or other events) to update the price automatically
-        async function listenForEvents() {
-            try {
-                const logs = await provider.getLogs({
-                    address: pairAddress,
-                    fromBlock: "latest",
-                    toBlock: "latest"
-                });
-
-                // Log the events to debug and find correct event signatures
-                console.log("Logs for events:", logs);
-
-                pairContract.on("Swap", async (sender, amount0In, amount1In, amount0Out, amount1Out, to) => {
-                    console.log(`Swap detected! Sender: ${sender}, Amount In: ${amount0In}, Amount Out: ${amount0Out}`);
-                    
-                    // After a swap, update the price
-                    await getPrice();
-                });
-            } catch (error) {
-                console.error("Error listening for events:", error);
-            }
-        }
-
-        // Start listening for events
-        listenForEvents();
+        // Listen for Swap events (real-time updates)
+        pairContract.on("Swap", async (sender, amount0In, amount1In, amount0Out, amount1Out, to) => {
+            console.log(`Swap detected! Sender: ${sender}, Amount In: ${amount0In}, Amount Out: ${amount0Out}`);
+            
+            // After a swap, update the price
+            await getPrice();
+        });
 
         // Optionally poll the price every 10 seconds (in case events aren't working or for added robustness)
         setInterval(getPrice, 10000);
