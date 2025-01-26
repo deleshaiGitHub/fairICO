@@ -9,7 +9,7 @@
 <body>
     <h1>PLSX/DAI Price Feed</h1>
     <p id="price"></p>
-    <button onclick="checkPrice()">Get PLSX Price</button>
+    <button onclick="getPrice()">Get Current PLSX Price</button>
 
     <script>
         // Replace with your PulseChain RPC endpoint
@@ -32,7 +32,7 @@
         }
 
         // Function to calculate price of PLSX in terms of DAI
-        async function calculatePrice() {
+        async function getPrice() {
             try {
                 const reserves = await getReserves();
                 const reservePLSX = reserves[0];  // Reserve for PLSX
@@ -40,31 +40,10 @@
                 
                 // DAI is 1:1 with USD, so its price is $1
                 const pricePLSX = reserveDAI / reservePLSX;  // Price of PLSX in terms of DAI
-                return pricePLSX;
+                document.getElementById('price').innerText = `PLSX Price (in DAI): ${pricePLSX.toFixed(6)}`;
             } catch (error) {
                 console.error('Error fetching reserves:', error);
-                return null;
-            }
-        }
-
-        // Function to check price and trigger events
-        async function checkPrice() {
-            try {
-                const price = await calculatePrice();
-                if (price !== null) {
-                    document.getElementById('price').innerText = `PLSX Price (in DAI): ${price.toFixed(6)}`;
-                    
-                    // Trigger sell event if price reaches target (example: sell if price > 1.5)
-                    const targetPrice = 1.5; // Example target price in DAI
-                    if (price > targetPrice) {
-                        alert('Target price reached! Triggering sell event.');
-                        // You can add your sell event logic here
-                    }
-                } else {
-                    document.getElementById('price').innerText = 'Error fetching price.';
-                }
-            } catch (error) {
-                console.error('Error checking price:', error);
+                document.getElementById('price').innerText = 'Error fetching price.';
             }
         }
     </script>
