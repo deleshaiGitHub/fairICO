@@ -10,6 +10,9 @@
     <h1>PLSX/DAI Price Feed</h1>
     <p id="price">Loading price...</p>
     <button onclick="getPrice()">Get Current PLSX Price</button>
+    
+    <h2>Swap Events</h2>
+    <ul id="swap-list"></ul> <!-- List to display swap details -->
 
     <script>
         // PulseChain RPC endpoint
@@ -64,13 +67,55 @@
             }
         }
 
+        // Function to determine buy/sell based on swap direction
+        function determineSwapDirection(amount0In, amount1In, amount0Out, amount1Out) {
+            if (amount0In.gt(0)) {
+                return 'Buy DAI';  // PLSX is being swapped for DAI
+            } else if (amount1In.gt(0)) {
+                return 'Buy PLSX';  // DAI is being swapped for PLSX
+            } else {
+                return 'Unknown';
+            }
+        }
+
         // Listen for Swap events (real-time updates)
         pairContract.on("Swap", async (sender, amount0In, amount1In, amount0Out, amount1Out, to) => {
             console.log(`Swap detected! Sender: ${sender}, Amount In: ${amount0In}, Amount Out: ${amount0Out}`);
             
             // After a swap, update the price
             await getPrice();
+
+            // Format the swap details
+            const swapDetails = {
+                sender: sender,
+                amount0In: ethers.utils.formatUnits(amount0In, 18),
+                amount1In: ethers.utils.formatUnits(amount1In, 18),
+                amount0Out: ethers.utils.formatUnits(amount0Out, 18),
+                amount1Out: ethers.utils.formatUnits(amount1Out, 18),
+                direction: determineSwapDirection(amount0In, amount1In, amount0Out, amount1Out),
+                to: to
+            };
+
+            // Add the swap event to the list
+            addSwapToList(swapDetails);
         });
+
+        // Function to add swap details to the list on the page
+        function addSwapToList(swapDetails) {
+            const swapList = document.getElementById('swap-list');
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `
+                <strong>Sender:</strong> ${swapDetails.sender} <br>
+                <strong>Direction:</strong> ${swapDetails.direction} <br>
+                <strong>Amount In (PLSX):</strong> ${swapDetails.amount0In} <br>
+                <strong>Amount In (DAI):</strong> ${swapDetails.amount1In} <br>
+                <strong>Amount Out (PLSX):</strong> ${swapDetails.amount0Out} <br>
+                <strong>Amount Out (DAI):</strong> ${swapDetails.amount1Out} <br>
+                <strong>To:</strong> ${swapDetails.to} <br>
+                <hr>
+            `;
+            swapList.appendChild(listItem);
+        }
 
         // Optionally poll the price every 10 seconds (in case events aren't working or for added robustness)
         setInterval(getPrice, 10000);
