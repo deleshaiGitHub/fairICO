@@ -10,118 +10,83 @@
     <h1>PLSX/DAI Price Feed</h1>
     <p id="price">Loading price...</p>
     <button onclick="getPrice()">Get Current PLSX Price</button>
-    
-    <h2>Swap Events</h2>
-    <ul id="swap-list"></ul> <!-- List to display swap details -->
+
+    <h2>Set Buy and Sell Prices</h2>
+    <div>
+        <label for="buyPrice">Buy Price (DAI per PLSX): </label>
+        <input type="number" id="buyPrice" step="0.000001">
+    </div>
+    <div>
+        <label for="sellPrice">Sell Price (DAI per PLSX): </label>
+        <input type="number" id="sellPrice" step="0.000001">
+    </div>
+
+    <h3>Recent Swap Events</h3>
+    <ul id="swapEvents"></ul>
 
     <script>
-        // PulseChain RPC endpoint
         const provider = new ethers.providers.JsonRpcProvider('https://pulsechain-rpc.publicnode.com');
-
-        // PLSX/DAI Pair Contract Address on PulseX
-        const pairAddress = '0xB2893ceA8080bF43b7b60B589EDaAb5211D98F23';  // PLSX/DAI pair
-
-        // ERC-20 ABI to interact with the pair contract
-        const pairAbi = [
-            "function getReserves() external view returns (uint112, uint112, uint32)",
+        const pairAddress = '0xB2893ceA8080bF43b7b60B589EDaAb5211D98F23';
+        const erc20Abi = ["function getReserves() external view returns (uint112, uint112, uint32)"];
+        const swapEventABI = [
             "event Swap(address indexed sender, uint amount0In, uint amount1In, uint amount0Out, uint amount1Out, address indexed to)"
         ];
+        const pairContract = new ethers.Contract(pairAddress, erc20Abi, provider);
 
-        // Create contract instance for the pair contract
-        const pairContract = new ethers.Contract(pairAddress, pairAbi, provider);
-
-        // Function to fetch reserves for PLSX/DAI pair
         async function getReserves() {
-            try {
-                const reserves = await pairContract.getReserves();
-                return reserves;
-            } catch (error) {
-                console.error('Error fetching reserves:', error);
-                return null;
-            }
+            const reserves = await pairContract.getReserves();
+            return reserves;
         }
 
-        // Function to calculate the price of PLSX in terms of DAI
         async function getPrice() {
             try {
                 const reserves = await getReserves();
-                if (reserves) {
-                    const reservePLSX = ethers.utils.formatUnits(reserves[0], 18);  // Convert from BigNumber to a readable number
-                    const reserveDAI = ethers.utils.formatUnits(reserves[1], 18);   // Same here for DAI
+                const reservePLSX = reserves[0];
+                const reserveDAI = reserves[1];
 
-                    // PLSX/DAI Price Calculation
-                    const pricePLSX = reserveDAI / reservePLSX; // Price of PLSX in terms of DAI
-                    const priceDAI = reservePLSX / reserveDAI; // Price of DAI in terms of PLSX
+                const pricePLSX = reserveDAI / reservePLSX;
+                const priceDAI = reservePLSX / reserveDAI;
 
-                    // Display Price Information
-                    document.getElementById('price').innerHTML = `
-                        <strong>PLSX Price in DAI:</strong> ${pricePLSX.toFixed(6)} DAI<br>
-                        <strong>DAI Price in PLSX:</strong> ${priceDAI.toFixed(0)} PLSX
-                    `;
-                } else {
-                    document.getElementById('price').innerText = 'Error fetching price.';
-                }
+                document.getElementById('price').innerHTML = `
+                    <strong>PLSX Price in DAI:</strong> ${pricePLSX.toFixed(6)} DAI<br>
+                    <strong>DAI Price in PLSX:</strong> ${priceDAI.toFixed(0)} PLSX
+                `;
+
+                checkBuySellConditions(pricePLSX);
+
             } catch (error) {
-                console.error('Error calculating price:', error);
+                console.error('Error fetching reserves:', error);
                 document.getElementById('price').innerText = 'Error fetching price.';
             }
         }
 
-        // Function to determine buy/sell based on swap direction
-        function determineSwapDirection(amount0In, amount1In, amount0Out, amount1Out) {
-            if (amount0In.gt(0)) {
-                return 'Buy DAI';  // PLSX is being swapped for DAI
-            } else if (amount1In.gt(0)) {
-                return 'Buy PLSX';  // DAI is being swapped for PLSX
-            } else {
-                return 'Unknown';
+        function checkBuySellConditions(price) {
+            const buyPrice = parseFloat(document.getElementById('buyPrice').value);
+            const sellPrice = parseFloat(document.getElementById('sellPrice').value);
+
+            if (buyPrice && price <= buyPrice) {
+                alert("Price reached buy threshold! Execute buy.");
+            } else if (sellPrice && price >= sellPrice) {
+                alert("Price reached sell threshold! Execute sell.");
             }
         }
 
-        // Listen for Swap events (real-time updates)
-        pairContract.on("Swap", async (sender, amount0In, amount1In, amount0Out, amount1Out, to) => {
+        // Listen for Swap events to update the price and show recent swaps
+        pairContract.on("Swap", (sender, amount0In, amount1In, amount0Out, amount1Out, to) => {
             console.log(`Swap detected! Sender: ${sender}, Amount In: ${amount0In}, Amount Out: ${amount0Out}`);
             
+            // Show the most recent swap event on the page (add to bottom of list)
+            const swapEventList = document.getElementById('swapEvents');
+            const listItem = document.createElement('li');
+            listItem.textContent = `Swap Event: ${amount0In.toString()} PLSX In, ${amount0Out.toString()} PLSX Out. Sender: ${sender}`;
+            swapEventList.appendChild(listItem); // Add new event at the bottom
+
             // After a swap, update the price
-            await getPrice();
-
-            // Format the swap details
-            const swapDetails = {
-                sender: sender,
-                amount0In: ethers.utils.formatUnits(amount0In, 18),
-                amount1In: ethers.utils.formatUnits(amount1In, 18),
-                amount0Out: ethers.utils.formatUnits(amount0Out, 18),
-                amount1Out: ethers.utils.formatUnits(amount1Out, 18),
-                direction: determineSwapDirection(amount0In, amount1In, amount0Out, amount1Out),
-                to: to
-            };
-
-            // Add the swap event to the list
-            addSwapToList(swapDetails);
+            getPrice();
         });
 
-        // Function to add swap details to the list on the page
-        function addSwapToList(swapDetails) {
-            const swapList = document.getElementById('swap-list');
-            const listItem = document.createElement('li');
-            listItem.innerHTML = `
-                <strong>Sender:</strong> ${swapDetails.sender} <br>
-                <strong>Direction:</strong> ${swapDetails.direction} <br>
-                <strong>Amount In (PLSX):</strong> ${swapDetails.amount0In} <br>
-                <strong>Amount In (DAI):</strong> ${swapDetails.amount1In} <br>
-                <strong>Amount Out (PLSX):</strong> ${swapDetails.amount0Out} <br>
-                <strong>Amount Out (DAI):</strong> ${swapDetails.amount1Out} <br>
-                <strong>To:</strong> ${swapDetails.to} <br>
-                <hr>
-            `;
-            swapList.appendChild(listItem);
-        }
-
-        // Optionally poll the price every 10 seconds (in case events aren't working or for added robustness)
         setInterval(getPrice, 10000);
-
-        // Initial price fetch on page load
-        getPrice();
+        getPrice(); // Initial price fetch on page load
     </script>
 </body>
 </html>
