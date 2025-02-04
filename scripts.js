@@ -1,51 +1,23 @@
-const { stakingContractABI } = require('./staking_abi');
+document.addEventListener('DOMContentLoaded', (event) => {
+    const apiUrl = "https://api.scan.pulsechain.com/api";
 
-if (typeof Web3 !== "undefined") {
-    web3 = new Web3(window.ethereum);
+    // Fetch pending transactions for an example address
+    fetch(`${apiUrl}?module=account&action=pendingtxlist&address=0xE60B1B8bD493569a3E945be50A6c89d29a560Fa1`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "1") {
+                document.getElementById('data').textContent = JSON.stringify(data.result, null, 2);
+            } else {
+                document.getElementById('data').textContent = "No pending transactions or error.";
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+            document.getElementById('data').textContent = "Error fetching data.";
+        });
 
-    const stakingContractAddress = '0xc67314c605A1A9F437a36f451B2C35e5A956562F';
-    const stakingTokenAddress = '0x7D1F668D0CDb20127cF9ed657DC634c7c6b2c967';
-
-    const stakingContract = new web3.eth.Contract(stakingContractABI, stakingContractAddress);
-    const stakingTokenContract = new web3.eth.Contract(tokenContractABI, stakingTokenAddress);
-
-    async function approveAndStake() {
-        let amount = document.getElementById('tokenAmount').value;
-        let duration = document.getElementById('lockingPeriod').value;
-
-        if (!amount || !duration) {
-            alert('Please enter both amount and duration.');
-            return;
-        }
-
-        try {
-            const accounts = await web3.eth.requestAccounts();
-            const fromAddress = accounts[0];
-
-            // Approve staking contract to spend the staking tokens
-            let approvalTx = await stakingTokenContract.methods.approve(stakingContractAddress, web3.utils.toWei(amount, 'ether')).send({
-                from: fromAddress,
-                gas: 300000
-            });
-
-            console.log('Token approved:', approvalTx);
-
-            // Staking tokens
-            let stakingTx = await stakingContract.methods.lockTokens(
-                web3.utils.toWei(amount, 'ether'),
-                duration
-            ).send({
-                from: fromAddress,
-                gas: 300000
-            });
-
-            document.getElementById('transactionStatus').innerText = `Staking successful! Transaction: ${stakingTx.transactionHash}`;
-        } catch (error) {
-            console.error('Error:', error);
-            document.getElementById('transactionStatus').innerText = 'An error occurred during staking.';
-        }
-    }
-
-} else {
-    console.log("Web3 not found. Please install MetaMask.");
-}
+    // You can add more API calls here for other data points like:
+    // - Latest transactions
+    // - Token holders
+    // - Block information
+});
