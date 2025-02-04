@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const apiUrl = "https://api.scan.pulsechain.com/api";
 
     // Fetch pending transactions for an example address
-    fetch(`${apiUrl}?module=account&action=pendingtxlist&address=0xE60B1B8bD493569a3E945be50A6c89d29a560Fa1`)
+    fetch(`${apiUrl}?module=account&action=pendingtxlist&address=0xA1077a294dDE1B09bB078844df40758a5D0f9a27`)
         .then(response => response.json())
         .then(data => {
             if (data.status === "1") {
